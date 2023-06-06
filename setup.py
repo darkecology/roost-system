@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     "torch",                    # 1.10.0
-    "opencv-python==4.5.2.52",  # 4.5.2.52
+    "opencv-python==4.5.3.56",  # 4.5.3.56
     "gdown==4.4.0",             # 4.4.0
     ### data ###
     "awscli",
