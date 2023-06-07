@@ -14,7 +14,7 @@ install_requires = [
     'wsrlib @ git+https://github.com/darkecology/pywsrlib#egg=wsrlib', # 6ba705d
     'detectron2 @ git+https://github.com/facebookresearch/detectron2.git#egg=detectron2', # 0.6
     'imageio==2.9.0',           # saving gif, 2.9.0
-    'scikit-learn==0.24.2',     # nearest neighbor search using ball tree for wind farm, 0.24.2
+    'scikit-learn>=0.24.2',     # nearest neighbor search using ball tree for wind farm, 0.24.2
 ]
 
 setup(
