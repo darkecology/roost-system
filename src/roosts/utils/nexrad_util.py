@@ -140,7 +140,7 @@ NEXRAD_LOCATIONS = {
     "KTYX": {'lat': 43.75583,  'lon': -75.68,      'elev': 1846,   'tz': 'America/New_York'},
     "KUDX": {'lat': 44.125,    'lon': -102.82944,  'elev': 3016,   'tz': 'America/Denver'},
     "KUEX": {'lat': 40.32083,  'lon': -98.44167,   'elev': 1976,   'tz': 'America/Chicago'},
-    "2023": {'lat': 30.89,     'lon': -83.00194,   'elev': 178,    'tz': 'America/New_York'},
+    "KVAX": {'lat': 30.89,     'lon': -83.00194,   'elev': 178,    'tz': 'America/New_York'},
     "KVBX": {'lat': 34.83806,  'lon': -120.39583,  'elev': 1233,   'tz': 'America/Los_Angeles'},
     "KVNX": {'lat': 36.74083,  'lon': -98.1275,    'elev': 1210,   'tz': 'America/Chicago'},
     "KVTX": {'lat': 34.41167,  'lon': -119.17861,  'elev': 2726,   'tz': 'America/Los_Angeles'},
@@ -163,6 +163,8 @@ NEXRAD_LOCATIONS = {
     "RKSG": {'lat': 36.95972,  'lon': 127.01833,   'elev': 52,     'tz': 'Asia/Seoul'},
     "RODN": {'lat': 26.30194,  'lon': 127.90972,   'elev': 218,    'tz': 'Asia/Tokyo'},
     "TJUA": {'lat': 18.1175,   'lon': -66.07861,   'elev': 2794,   'tz': 'America/Puerto_Rico'},
+
+    "CASET": {'lat': 43.37243,     'lon': -79.7803300,   'elev': 270,    'tz': 'America/New_York'},
 }
 
 # Regions Dictionary, To Be Filled with list of stations by region.

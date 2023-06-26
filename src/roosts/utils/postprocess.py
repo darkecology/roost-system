@@ -128,7 +128,7 @@ class Postprocess():
             roost_xy = det["im_bbox"][:2]  # image coordinate of roost center
             # the following step is critical to get correct geographic coordinates
             station_xy = (self.imsize / 2., self.imsize / 2.)  # image coordinate of radar station
-            station_name = det["scanname"][:4]
+            station_name = det["scanname"][14:19]
             distance_per_pixel = self.geosize / self.imsize
             roost_lon, roost_lat = get_roost_coor(roost_xy, station_xy, station_name, distance_per_pixel)
             geo_radius = det["im_bbox"][2] * distance_per_pixel

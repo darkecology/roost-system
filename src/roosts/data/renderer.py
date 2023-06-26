@@ -115,8 +115,8 @@ class Renderer:
             # utc_station = key_splits[-2]
             utc_date_station_prefix = os.path.join(key_splits[0], key_splits[1])
             # utc_date_station_prefix = key_splits[0]
-            # scan = os.path.splitext(key_splits[-1])[0]
-            scan = key_splits[0]
+            scan = key_splits[0] + os.path.splitext(key_splits[-1])[0]
+            # print('scan is ', scan)
 
             npz_dir = os.path.join(self.npz_dir, utc_date_station_prefix)
             dz05_imgdir = os.path.join(self.dz05_imgdir, utc_date_station_prefix)
