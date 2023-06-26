@@ -46,7 +46,7 @@ class Tracker:
 
         """ (0) get ready """
         # sort the scans based on scan time
-        scans.sort(key=lambda x: int(x[4:12] + x[13:19])) # the first 4 characters are radar station name
+        scans.sort(key=lambda x: int(x[0:8] + x[9:13])) # the first 4 characters are radar station name
 
         # add a new field in detections to indicate whether the det has been tracked
         for det in detections:
@@ -313,7 +313,7 @@ class Tracker:
             track["merged"] = False
         # sort the scans based on scan time
         scans = list(set([det["scanname"] for det in detections]))
-        scans.sort(key=lambda x: int(x[4:12] + x[13:19]))  # the first 4 characters are radar station name
+        scans.sort(key=lambda x: int(x[0:8] + x[9:11]))  # the first 4 characters are radar station name
         scan_dict = {}
         for scan_idx, scan in enumerate(scans):
             scan_dict[scan] = scan_idx

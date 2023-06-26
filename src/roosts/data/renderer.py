@@ -65,6 +65,17 @@ NORMALIZERS = {
     'cross_correlation_ratio':      pltc.Normalize(vmin=   0, vmax= 1.1)
 }
 
+ODIM_FIELD_NAMES = {
+    'DBZH' : 'reflectivity',
+    'TH': 'total_power',
+    'RHOHV': 'cross_correlation_ratio',
+    'WRADH': 'spectrum_width',
+    'PHIDP': 'differential_phase',
+    'ZDR': 'differential_reflectivity',
+    'KDP': 'specific_differential_phase',
+    'VRADH': 'velocity'
+}
+
 
 class Renderer:
     def __init__(
@@ -97,13 +108,15 @@ class Renderer:
         img_files = [] # the list of dz05 images for visualization
 
         for key in tqdm(keys, desc="Rendering"):
-            key_splits = key.split("/")
-            utc_year = key_splits[-5]
-            utc_month = key_splits[-4]
-            utc_date = key_splits[-3]
-            utc_station = key_splits[-2]
-            utc_date_station_prefix = os.path.join(utc_year, utc_month, utc_date, utc_station)
-            scan = os.path.splitext(key_splits[-1])[0]
+            key_splits = key.split("_")
+            # utc_year = key_splits[-5]
+            # utc_month = key_splits[-4]
+            # utc_date = key_splits[-3]
+            # utc_station = key_splits[-2]
+            utc_date_station_prefix = os.path.join(key_splits[0], key_splits[1])
+            # utc_date_station_prefix = key_splits[0]
+            # scan = os.path.splitext(key_splits[-1])[0]
+            scan = key_splits[0]
 
             npz_dir = os.path.join(self.npz_dir, utc_date_station_prefix)
             dz05_imgdir = os.path.join(self.dz05_imgdir, utc_date_station_prefix)
@@ -124,17 +137,20 @@ class Renderer:
             arrays = {}
 
             try:
-                radar = pyart.io.read_nexrad_archive(os.path.join(self.download_dir, key))
+                radar = pyart.aux_io.read_odim_h5(os.path.join(self.download_dir, key), field_names=ODIM_FIELD_NAMES)
             except Exception as ex:
                 logger.error('[Scan Loading Failure] scan %s - %s' % (scan, str(ex)))
+                print('exception while reading ', ex)
                 continue
 
             try:
                 data, _, _, y, x = radar2mat(radar, **self.array_render_config)
                 logger.info('[Array Rendering Success] scan %s' % scan)
                 arrays["array"] = data
+                # print('radar data ', arrays["array"])
             except Exception as ex:
                 logger.error('[Array Rendering Failure] scan %s - %s' % (scan, str(ex)))
+                print('exception while generating mat')
 
             try:
                 data, _, _, y, x = radar2mat(radar, **self.dualpol_render_config)

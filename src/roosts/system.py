@@ -57,7 +57,10 @@ class RoostSystem:
         logger.addHandler(filelog)
 
         ######################### (1) Download data #########################
-        keys = self.downloader.download_scans(keys, logger)
+        # keys = self.downloader.download_scans(keys, logger)
+        folder_path = './RADAR_DATA'
+        file_names = os.listdir(folder_path)
+        keys = [name for name in file_names]
 
         ######################### (2) Render data #########################
         (
@@ -65,7 +68,7 @@ class RoostSystem:
             scan_names, # the list of all scans for the tracker to know
             img_files,  # the list of dz05 images for visualization
         ) = self.renderer.render(keys, logger)
-        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
+        # delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
 
         if len(npz_files) == 0:
             process_end_time = time.time()

@@ -59,13 +59,14 @@ def get_sun_activity_time(
 
 
 def scan_key_to_utc_time(scan):
+    print('scan is ', scan)
     return pytz.utc.localize(datetime(
-        int(scan[4:8]), # year
-        int(scan[8:10]), # month
-        int(scan[10:12]), # date
-        int(scan[13:15]), # hour
-        int(scan[15:17]), # min
-        int(scan[17:19]), # sec
+        int(scan[0:4]), # year
+        int(scan[4:6]), # month
+        int(scan[6:8]), # date
+        int(scan[9:11]), # hour
+        int(scan[11:13]), # min
+        # int(scan[12:14]), # sec 
     ))
 
 def scan_key_to_local_time(scan):
