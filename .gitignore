@@ -1,4 +1,6 @@
 # Manual Additions
+data
+tools/post_hoc_counting/count_bats_post_hoc/screened*
 tools/deployment_requests
 development/custom_eval/collected_results
 
