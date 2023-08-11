@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#BATCH --job-name=150
+#SBATCH --job-name=150
 #SBATCH -o /mnt/nfs/scratch1/gperezsarabi/darkecology/roost-system/development/experiments/gypsum_logs/150.txt
 #SBATCH --partition=rtx8000-long
 #SBATCH --gres=gpu:1

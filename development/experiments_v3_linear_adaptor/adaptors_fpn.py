@@ -101,7 +101,7 @@ class Adaptor_FPN(Backbone):
         """
         super(Adaptor_FPN, self).__init__()
         assert isinstance(bottom_up, Backbone)
-        
+
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
         in_strides = [input_shapes[f].stride for f in in_features]
@@ -136,7 +136,7 @@ class Adaptor_FPN(Backbone):
 
             lateral_convs.append(lateral_conv)
             output_convs.append(output_conv)
-        
+
         # GPS: adaptor
         self.is_adaptor = adaptor
         if adaptor == 'linear':

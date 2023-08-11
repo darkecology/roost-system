@@ -223,7 +223,7 @@ cfg.OUTPUT_DIR = args.output_dir
 #### GPS: when using adaptors ######################
 ####################################################
 if args.adaptor != 'None':
-    cfg.MODEL.BACKBONE.NAME = 'custom_build_resnet_fpn_backbone'
+    cfg.MODEL.BACKBONE.NAME = 'build_adaptor_resnet_fpn_backbone'
     cfg.ADAPTOR_TYPE = args.adaptor
     cfg.ADAPTOR_IN_CHANNELS = len(CHANNELS) * 3
     cfg.MODEL.PIXEL_MEAN = []
