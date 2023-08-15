@@ -29,7 +29,7 @@ Roost detection is based on [Detectron2](https://github.com/darkecology/detectro
     - **launch_demo_without_slurm_america.py** is a modifiable template that downloads radar scans, renders arrays, detects and tracks 
     roosts in them, and postprocesses the results without using slurm. It can be used for testing during development
     - **launch_demo_without_slurm_canada.py** is a modifiable template that downloads radar scans, renders arrays, detects and tracks 
-    roosts in them, and postprocesses the results without using slurm for the CASET radar station. It can be used for testing during development.
+    roosts in them, and postprocesses the results without using slurm for the CASET radar station. It can be used for testing during development
 
 
 #### Installation
@@ -107,7 +107,7 @@ the h5 files.
    each set of continuous days at a station. Modify VARIABLES in **tools/launch_demo.py**.
    Then under **tools**, run `python launch_demo.py` 
    to submit jobs to slurm and process multiple batches of data.
-   To run inference for the CASET radar station, modify and run `python launch_demo.py` instead.
+   To run inference for the CASET radar station, modify and run `python launch_demo_canada.py` instead.
 
    2. In the second, we process scattered days at stations, i.e. we launch one job for 
    all days from each station. Modify VARIABLES in **tools/gen_deploy_station_days_scripts.py**. 
