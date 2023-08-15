@@ -65,6 +65,16 @@ NORMALIZERS = {
     'cross_correlation_ratio':      pltc.Normalize(vmin=   0, vmax= 1.1)
 }
 
+ODIM_FIELD_NAMES = {
+    'DBZH' : 'reflectivity',
+    'TH': 'total_power',
+    'RHOHV': 'cross_correlation_ratio',
+    'WRADH': 'spectrum_width',
+    'PHIDP': 'differential_phase',
+    'ZDR': 'differential_reflectivity',
+    'KDP': 'specific_differential_phase',
+    'VRADH': 'velocity'
+}
 
 class Renderer:
     def __init__(
@@ -74,6 +84,7 @@ class Renderer:
             ui_img_dir,
             array_render_config=ARRAY_RENDER_CONFIG,
             dualpol_render_config=DUALPOL_RENDER_CONFIG,
+            is_canadian_data=False
     ):
         self.download_dir = download_dir
         self.npz_dir = npz_dir
@@ -84,6 +95,7 @@ class Renderer:
 
         self.array_render_config = array_render_config
         self.dualpol_render_config = dualpol_render_config
+        self.is_canadian_data = is_canadian_data
 
     def render(self, keys, logger, force_rendering=False):
         """
@@ -124,7 +136,11 @@ class Renderer:
             arrays = {}
 
             try:
-                radar = pyart.io.read_nexrad_archive(os.path.join(self.download_dir, key))
+                if self.is_canadian_data:
+                    radar = pyart.aux_io.read_odim_h5(os.path.join(self.download_dir, key),
+                                                      field_names=ODIM_FIELD_NAMES)
+                else:
+                    radar = pyart.io.read_nexrad_archive(os.path.join(self.download_dir, key))
             except Exception as ex:
                 logger.error('[Scan Loading Failure] scan %s - %s' % (scan, str(ex)))
                 continue

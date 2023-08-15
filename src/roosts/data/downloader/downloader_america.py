@@ -1,13 +1,14 @@
 import os
 from roosts.utils.s3_util import download_scan
 from tqdm import tqdm
+from .downloader import Downloader
 
-
-class Downloader:
+class DownloaderAmerica(Downloader):
 
     """ 
-        This class iteratively downloads the radar scans in a certain date range from a certain radar station
-        in a daily basis. Station-day is the minimum unit of tracking roosts.
+        This class iteratively downloads the radar scans in a certain date range from a
+        certain radar station in a daily basis from AWS. Station-day is the minimum unit of
+        tracking roosts.
     """
 
     def __init__(self, download_dir, npz_dir, aws_access_key_id=None, aws_secret_access_key=None):

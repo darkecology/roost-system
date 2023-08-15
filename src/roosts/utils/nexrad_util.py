@@ -163,6 +163,12 @@ NEXRAD_LOCATIONS = {
     "RKSG": {'lat': 36.95972,  'lon': 127.01833,   'elev': 52,     'tz': 'Asia/Seoul'},
     "RODN": {'lat': 26.30194,  'lon': 127.90972,   'elev': 218,    'tz': 'Asia/Tokyo'},
     "TJUA": {'lat': 18.1175,   'lon': -66.07861,   'elev': 2794,   'tz': 'America/Puerto_Rico'},
+    # Canadian station EXETER - added for consistency, not a NEXRAD station
+    # Sources - 
+    # 1. https://collaboration.cmc.ec.gc.ca/cmc/cmos/public_doc/msc-data/obs_radar/radars_list.pdf
+    # 2. https://en.wikipedia.org/wiki/Canadian_weather_radar_network, 
+    # 3. timezone = EDT (https://www.timetemperature.com/tzon/exeter.shtml)
+    "CSET": {'lat': 43.372425,   'lon': -81.380698,   'elev': 996.71916,   'tz': 'America/New_York'}
 }
 
 # Regions Dictionary, To Be Filled with list of stations by region.

@@ -2,7 +2,7 @@ import copy
 import logging
 import os
 import time
-from roosts.data.downloader import Downloader
+from roosts.data.downloader import DownloaderAmerica, DownloaderCanada
 from roosts.data.renderer import Renderer
 from roosts.detection.detector import Detector
 from roosts.tracking.tracker import Tracker
@@ -17,12 +17,25 @@ class RoostSystem:
     def __init__(self, args, det_cfg, pp_cfg, dirs):
         self.args = args
         self.dirs = dirs
-        self.downloader = Downloader(
-            download_dir=dirs["scan_dir"], npz_dir=dirs["npz_dir"],
-            aws_access_key_id=args.aws_access_key_id,
-            aws_secret_access_key=args.aws_secret_access_key,
-        )
-        self.renderer = Renderer(dirs["scan_dir"], dirs["npz_dir"], dirs["ui_img_dir"])
+        
+        if 'is_canadian' not in args or not args.is_canadian:
+            self.is_canadian_data = False
+            self.downloader = DownloaderAmerica(
+                download_dir=dirs["scan_dir"], npz_dir=dirs["npz_dir"],
+                aws_access_key_id=args.aws_access_key_id,
+                aws_secret_access_key=args.aws_secret_access_key
+            )
+        else:
+            self.is_canadian_data = True
+            self.downloader = DownloaderCanada(
+                download_dir=dirs["scan_dir"],
+                npz_dir=dirs["npz_dir"],
+                sa_connection_str=args.sa_connection_str,
+                sa_container_name=args.sa_container_name
+            )
+
+        self.renderer = Renderer(dirs["scan_dir"], dirs["npz_dir"], dirs["ui_img_dir"],
+                                 is_canadian_data=self.is_canadian_data)
         if not args.just_render:
             self.detector = Detector(**det_cfg)
             self.tracker = Tracker()
@@ -33,7 +46,7 @@ class RoostSystem:
             self,
             day, # timestamps that indicate the beginning of dates, no time zone info
             sun_activity_time, # utc timestamp for the next local sun activity after the beginning of the local date
-            keys, # aws keys which uses UTC time: yyyy/mm/dd/ssss/ssssyyyymmdd_hhmmss*
+            keys, # aws/azure keys which uses UTC time: yyyy/mm/dd/ssss/ssssyyyymmdd_hhmmss*
             process_start_time
     ):
         local_date_string = day.strftime('%Y%m%d')  # yyyymmdd

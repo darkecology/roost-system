@@ -48,6 +48,7 @@ def get_sun_activity_time(
 
     # Taken from the refernce link
     # To get U.S. Naval Astronomical Almanac values, use these settings
+    # Using the same definition of sunrise and sunset for Canadian data
     obs.pressure = 0
     obs.horizon = '-0:34'
 

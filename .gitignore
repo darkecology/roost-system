@@ -160,3 +160,6 @@ debug.env
 
 # .lock
 *.lock
+
+# default inference results folder
+inference_results

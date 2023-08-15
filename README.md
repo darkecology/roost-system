@@ -20,9 +20,17 @@ Roost detection is based on [Detectron2](https://github.com/darkecology/detectro
 - **tools** is for system deployment
     - **demo.py** downloads radar scans, renders arrays, detects and tracks 
     roosts in them, and postprocesses the results 
+    - **demo_canada.py** downloads radar scans for Canadian data, renders arrays,
+    detects and tracks roosts in them, and postprocesses the results
     - **launch_demo.py** is a modifiable template that submits **demo.sbatch** to servers with slurm management
+    - **launch_demo_canada.py** is a modifiable template that submits **demo_canada.sbatch** to servers with slurm management
     - **demo.ipynb** is for interactively running the system
     - **utc_to_local_time.py** takes in web ui files and append local time to each line
+    - **launch_demo_without_slurm_america.py** is a modifiable template that downloads radar scans, renders arrays, detects and tracks 
+    roosts in them, and postprocesses the results without using slurm. It can be used for testing during development
+    - **launch_demo_without_slurm_canada.py** is a modifiable template that downloads radar scans, renders arrays, detects and tracks 
+    roosts in them, and postprocesses the results without using slurm for the CASET radar station. It can be used for testing during development
+
 
 #### Installation
 1. See Detectron2 requirements
@@ -74,7 +82,7 @@ A Colab notebook for running small-scale inference is
 Large-scale deployment can be run on CPU servers as follows.
 1. Under **checkpoints**, download a trained detection checkpoint.
 
-2. [Configure AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) by
+2. (Only for running inference on American data) [Configure AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) by
 `aws configure`
 in order to download radar scans. 
 Enter `AWS Access Key ID` and `AWS Secret Access Key` as prompted,
@@ -87,12 +95,19 @@ Review the updated AWS config.
 
 3. Modify **demo.py** for system customization. 
 For example, DET_CFG can be changed to adopt a new detector.
+To run inference for the CASET radar station, modify **demo_canada.py** -
+- Update the variable *sa_connection_str* to contain the value of the Azure storage account connection string that contains
+the h5 files.
+- Update the variable *sa_container_name* to contain the name of the Azure storage account container that has
+the h5 files.
+- The code assumes that the filename format for the CASET station files would be similar to *2022060100_06_ODIMH5_PVOL6S_VOL_CASET.h5*.
 
 4. Make sure the environment is activated. Then consider two deployment scenarios.
    1. In the first, we process consecutive days at stations, i.e. we launch one job for 
    each set of continuous days at a station. Modify VARIABLES in **tools/launch_demo.py**.
    Then under **tools**, run `python launch_demo.py` 
-   to submit jobs to slurm and process multiple batches of data. 
+   to submit jobs to slurm and process multiple batches of data.
+   To run inference for the CASET radar station, modify and run `python launch_demo_canada.py` instead.
 
    2. In the second, we process scattered days at stations, i.e. we launch one job for 
    all days from each station. Modify VARIABLES in **tools/gen_deploy_station_days_scripts.py**. 
