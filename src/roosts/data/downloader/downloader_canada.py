@@ -18,11 +18,12 @@ class DownloaderCanada(Downloader):
     canada_station_map = {
         'CASET' : 'CSET',
     }
-    def __init__(self, download_dir, npz_dir, sa_connection_str):
+    def __init__(self, download_dir, npz_dir, sa_connection_str, sa_container_name):
         self.download_dir = download_dir
         os.makedirs(self.download_dir, exist_ok=True)
         self.npz_dir = npz_dir
         self.sa_connection_str = sa_connection_str
+        self.sa_container_name = sa_container_name
 
     def get_file_download_loc(self, key):
         """ For each key, obtain the location for download, 
@@ -58,7 +59,8 @@ class DownloaderCanada(Downloader):
                     key,
                     self.download_dir,
                     file_download_loc,
-                    sa_connection_str=self.sa_connection_str
+                    sa_connection_str=self.sa_connection_str,
+                    sa_container_name=self.sa_container_name
                 )
                 valid_keys.append(file_download_loc)
                 logger.info('[Download Success] scan %s' % file_download_name)

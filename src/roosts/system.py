@@ -30,7 +30,8 @@ class RoostSystem:
             self.downloader = DownloaderCanada(
                 download_dir=dirs["scan_dir"],
                 npz_dir=dirs["npz_dir"],
-                sa_connection_str=args.sa_connection_str
+                sa_connection_str=args.sa_connection_str,
+                sa_container_name=args.sa_container_name
             )
 
         self.renderer = Renderer(dirs["scan_dir"], dirs["npz_dir"], dirs["ui_img_dir"],

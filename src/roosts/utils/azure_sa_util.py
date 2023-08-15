@@ -66,12 +66,13 @@ def get_station_day_scan_keys(
         station, # not being used right now
         stride_in_minutes=6,
         thresh_in_minutes=6,
-        sa_connection_str=None
+        sa_connection_str=None,
+        sa_container_name="caset-2022"
 ):
 
     container_client = ContainerClient.from_connection_string(
             conn_str=sa_connection_str,
-            container_name="caset-2022")
+            container_name=sa_container_name)
    
     blob_names = []
     current_time = start_time
@@ -111,11 +112,12 @@ def download_scan(
         key,
         data_dir,
         file_download_loc,
-        sa_connection_str=None):
+        sa_connection_str=None,
+        sa_container_name="caset-2022"):
 
     container_client = ContainerClient.from_connection_string(
             conn_str=sa_connection_str,
-            container_name="caset-2022")
+            container_name=sa_container_name)
     
     local_file = os.path.join(data_dir, file_download_loc)
     local_dir, filename = os.path.split(local_file)
