@@ -1,4 +1,4 @@
-# Code adapted from Maria Belotti's script
+"""Code adapted from Maria Belotti's script"""
 
 from roosts.utils.counting_util import *
 import os, csv, argparse
@@ -7,8 +7,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--file', type=str, required=True)
 args = parser.parse_args()
 
-INPUT_DIR = "screened"
-OUTPUT_DIR = "screened_with_counts"
+INPUT_DIR = "texas_bats_v3_long"
+OUTPUT_DIR = "texas_bats_v3_long_with_counts"
 # get_bird_rcs(54) for purple martins
 # 4.519 for bats
 rcs = 4.519
@@ -26,7 +26,9 @@ f = open(os.path.join(OUTPUT_DIR, args.file), "w")
 f.write(
     ",".join(lines[0] + [
         "n_animals",
-        "overthresh_percent"  # some pixels are NA since reflectivity is over a threshold
+        "overthresh_percent",  # some pixels are NA since reflectivity is over a threshold
+        "n_animals_1.2x",
+        "overthresh_percent_1.2x"
     ]) + "\n"
 )
 for i in range(1, len(lines)):
@@ -41,10 +43,9 @@ for i in range(1, len(lines)):
 
         # Get the center and the radius of the bbox in pixel coordinates:
         px_c, py_c, pr_c = float(line[4]), float(line[5]), float(line[6])
-        # TODO add a scaling factor k = 1.2 to match the UI
+
         # Convert the pixel coordinates to cartesian values:
         detection_coordinates = image2xy(px_c, py_c, pr_c)
-
         n_animals, _, overthresh_percent, _ = calc_n_animals(
             radar,
             sweep_number,
@@ -53,10 +54,20 @@ for i in range(1, len(lines)):
             threshold,
             method="polar"
         )
+        lines[i] = lines[i] + [str(n_animals), str(overthresh_percent)]
 
-        f.write(",".join(lines[i] + [
-            str(n_animals), str(overthresh_percent)
-        ]) + "\n")
+        detection_coordinates = image2xy(px_c, py_c, pr_c, k=1.2)
+        n_animals, _, overthresh_percent, _ = calc_n_animals(
+            radar,
+            sweep_number,
+            detection_coordinates,
+            rcs,
+            threshold,
+            method="polar"
+        )
+        lines[i] = lines[i] + [str(n_animals), str(overthresh_percent)]
+
+        f.write(",".join(lines[i]) + "\n")
 
     except:
-        f.write(",".join(lines[i] + ["", "", ""]) + "\n")
+        f.write(",".join(lines[i] + ["", "", "", ""]) + "\n")

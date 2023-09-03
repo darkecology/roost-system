@@ -1,6 +1,7 @@
 # Manual Additions
 data
-tools/post_hoc_counting/count_bats_post_hoc/screened*
+tools/post_hoc_counting/count_texas_bats_v3_screened/texas_bats_v3_screened*
+tools/post_hoc_counting/count_texas_bats_v3_long/texas_bats_v3_long*
 tools/deployment_requests
 development/custom_eval/collected_results
 

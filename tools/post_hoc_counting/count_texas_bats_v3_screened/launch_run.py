@@ -1,7 +1,7 @@
 import os, time
 
 NUM_CPUS = 7
-INPUT_DIR = "screened"
+INPUT_DIR = "texas_bats_v3_screened"
 for file in os.listdir(INPUT_DIR):
     station, year = file.split("_")[2], file.split("_")[3][:4]
 

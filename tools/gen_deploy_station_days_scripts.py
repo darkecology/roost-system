@@ -1,7 +1,6 @@
 import os
 import time
 
-
 NUM_CPUS = 7
 # station, start date (inclusive), end date (inclusive)
 STATIONS_TIMES = {
@@ -15,7 +14,7 @@ STATIONS_TIMES = {
     ],
 }
 
-SUN_ACTIVITY = "sunrise"
+SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
 MIN_BEFORE = 30
 MIN_AFTER = 90
 # directory for system outputs

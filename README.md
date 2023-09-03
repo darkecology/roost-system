@@ -18,11 +18,19 @@ Roost detection is based on [Detectron2](https://github.com/darkecology/detectro
     - **tracking**
     - **utils** contains various utils, scripts to postprocess roost tracks, and scripts to generate visualization
 - **tools** is for system deployment
-    - **demo.py** downloads radar scans, renders arrays, detects and tracks 
-    roosts in them, and postprocesses the results 
-    - **launch_demo.py** is a modifiable template that submits **demo.sbatch** to servers with slurm management
+    - **demo\*.py** downloads radar scans, renders arrays and some channels as images for visualization, 
+      detects and tracks roosts in them, and postprocesses the results 
+    - **launch_demo\*.py** is a modifiable template that makes multiple calls to **sbatch demo.sbatch**, 
+      each calling **demo.py**, to submit slurm jobs.
+    - If we want each slurm job to include multiple calls to **demo.py** (e.g., process several time periods at 
+      a station within one slurm job), use **gen_deploy_station_days_scripts.py** to create a **launch\*.py** file 
+      and corresponding **\*.sbatch** files. 
     - **demo.ipynb** is for interactively running the system
-    - **utc_to_local_time.py** takes in web ui files and append local time to each line
+    - **publish_images.sh** sends images generated during system deployment to a server to be archived
+    - (depreciated) **add_local_time_to_output_files.py** takes in scans*.txt and tracks*.txt files produced by 
+      system deployment and append local time to each line. Now the system should handle it automatically.
+    - (depreciated) **post_hoc_counting** takes in tracks* files and compute estimated numbers of animals in 
+      each bounding box. Now the system should handle it automatically.
 
 #### Installation
 1. See Detectron2 requirements
