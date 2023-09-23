@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 import time
+from wsrlib import pyart
 from roosts.data.downloader import Downloader
 from roosts.data.renderer import Renderer
 from roosts.detection.detector import Detector
@@ -60,13 +61,13 @@ class RoostSystem:
 
         ######################### (1) Download data #########################
         keys = self.downloader.download_scans(keys, logger)
+        scanname2key = {os.path.splitext(key.split("/")[-1])[0]: key for key in keys}
 
         ######################### (2) Render data #########################
         (
             npz_files,      # the list of arrays for the detector to load and process
             scan_names,     # the list of all scans for the tracker to know
             img_files,      # the list of dz05 images for visualization
-            success_keys,   # the list of keys
         ) = self.renderer.render(keys, logger)
 
         if len(npz_files) == 0:
@@ -109,7 +110,7 @@ class RoostSystem:
             f.writelines([f"{scan_name},{scan_key_to_local_time(scan_name)}\n" for scan_name in scan_names])
 
         ######################### (3) Run detection models on the data #########################
-        detections = self.detector.run(npz_files, success_keys)
+        detections = self.detector.run(npz_files)
         logger.info(f'[Detection Done] {len(detections)} detections')
 
         ######################### (4) Run tracking on the detections #########################
@@ -132,10 +133,10 @@ class RoostSystem:
         logger.info(f'[Postprocessing Done] {len(cleaned_detections)} cleaned detections')
 
         ######################### (6) Count animals  #########################
-        for detection in cleaned_detections:
-            detection["count_scaling"] = self.count_cfg["count_scaling"]
-            detection["n_animals"], _, detection["overthresh_percent"], _ = calc_n_animals(
-                pyart.io.read_nexrad_archive(os.path.join(self.dirs["scan_dir"], detection["key"])),
+        for det in cleaned_detections:
+            det["count_scaling"] = self.count_cfg["count_scaling"]
+            det["n_animals"], _, det["overthresh_percent"], _ = calc_n_animals(
+                pyart.io.read_nexrad_archive(os.path.join(self.dirs["scan_dir"], scanname2key[det["scanname"]])),
                 self.count_cfg["sweep_number"],
                 image2xy(det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2], k=self.count_cfg["count_scaling"]),
                 self.count_cfg["rcs"],

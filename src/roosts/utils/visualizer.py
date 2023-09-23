@@ -294,7 +294,7 @@ class Visualizer:
                     if idx > last_pred_idx:
                         break
                     det = det_dict[det_ID]
-                    f.write('{:d},{:s},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:s},{:f},{:.5f},{:.5f}\n'.format(
+                    f.write('{:d},{:s},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:s},{:3f},{:.4f},{:.6f}\n'.format(
                         det["track_ID"], det["scanname"], det[f"from_{self.sun_activity}"], det["det_score"],
                         det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2],
                         det["geo_bbox"][0], det["geo_bbox"][1], det["geo_bbox"][2],

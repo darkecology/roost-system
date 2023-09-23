@@ -95,7 +95,6 @@ class Renderer:
         npz_files = [] # the list of arrays for the detector to load and process
         scan_names = [] # the list of all scans for the tracker to know
         img_files = [] # the list of dz05 images for visualization
-        success_keys = []
 
         for key in tqdm(keys, desc="Rendering"):
             key_splits = key.split("/")
@@ -120,7 +119,6 @@ class Renderer:
                 npz_files.append(npz_path)
                 scan_names.append(scan)
                 img_files.append(dz05_path)
-                success_keys.append(key)
                 continue
 
             arrays = {}
@@ -151,9 +149,8 @@ class Renderer:
                 npz_files.append(npz_path)
                 scan_names.append(scan)
                 img_files.append(dz05_path)
-                success_keys.append(key)
 
-        return npz_files, scan_names, img_files, success_keys
+        return npz_files, scan_names, img_files
 
     def render_img(self, array, utc_date_station_prefix, scan):
         attributes = self.array_render_config['fields']
