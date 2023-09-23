@@ -15,6 +15,7 @@ for year in range(2000, 2021):
 #     ("KDFX", "20060101", "20061231"),
 # ]
 
+SPECIES = "bat"
 SUN_ACTIVITY = "sunset" # bat activities occur around sunset
 MIN_BEFORE = 150
 MIN_AFTER = 150
@@ -53,7 +54,7 @@ for args in args_list:
     --partition=longq \
     --time=7-00:00:00 \
     demo.sbatch \
-    --station {station} --start {start} --end {end} \
+    --species {SPECIES} --station {station} --start {start} --end {end} \
     --sun_activity {SUN_ACTIVITY} --min_before {MIN_BEFORE} --min_after {MIN_AFTER} \
     --data_root {DATA_ROOT} --model_version {MODEL_VERSION}'''
     

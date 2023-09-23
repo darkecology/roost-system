@@ -294,11 +294,12 @@ class Visualizer:
                     if idx > last_pred_idx:
                         break
                     det = det_dict[det_ID]
-                    f.write('{:d},{:s},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:s}\n'.format(
+                    f.write('{:d},{:s},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:s},{:f},{:.5f},{:.5f}\n'.format(
                         det["track_ID"], det["scanname"], det[f"from_{self.sun_activity}"], det["det_score"],
                         det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2],
                         det["geo_bbox"][0], det["geo_bbox"][1], det["geo_bbox"][2],
-                        scan_key_to_local_time(det["scanname"])
+                        scan_key_to_local_time(det["scanname"]),
+                        det["count_scaling"], det["n_animals"], det["overthresh_percent"]
                     ))
                     saved_track = True
                 if saved_track:

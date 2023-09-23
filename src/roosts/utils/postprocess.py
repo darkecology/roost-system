@@ -130,7 +130,9 @@ class Postprocess():
             station_xy = (self.imsize / 2., self.imsize / 2.)  # image coordinate of radar station
             station_name = det["scanname"][:4]
             distance_per_pixel = self.geosize / self.imsize
-            roost_lon, roost_lat = get_roost_coor(roost_xy, station_xy, station_name, distance_per_pixel)
+            roost_lon, roost_lat = get_roost_coor(
+                roost_xy, station_xy, station_name, distance_per_pixel, y_direction="image"
+            )
             geo_radius = det["im_bbox"][2] * distance_per_pixel
             det["geo_bbox"] = [roost_lon, roost_lat, geo_radius]
         return detections

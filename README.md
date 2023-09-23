@@ -18,15 +18,19 @@ Roost detection is based on [Detectron2](https://github.com/darkecology/detectro
     - **tracking**
     - **utils** contains various utils, scripts to postprocess roost tracks, and scripts to generate visualization
 - **tools** is for system deployment
-    - **demo\*.py** downloads radar scans, renders arrays and some channels as images for visualization, 
-      detects and tracks roosts in them, and postprocesses the results 
-    - **launch_demo\*.py** is a modifiable template that makes multiple calls to **sbatch demo.sbatch**, 
-      each calling **demo.py**, to submit slurm jobs.
-    - If we want each slurm job to include multiple calls to **demo.py** (e.g., process several time periods at 
-      a station within one slurm job), use **gen_deploy_station_days_scripts.py** to create a **launch\*.py** file 
-      and corresponding **\*.sbatch** files. 
-    - **demo.ipynb** is for interactively running the system
-    - **publish_images.sh** sends images generated during system deployment to a server to be archived
+    - **demo.py** downloads radar scans, renders arrays to be processed by models and some channels as images for 
+      visualization, detects and tracks roosts in them, and postprocesses the results.
+      - **demo.sbatch** defines a slurm job which calls **demo.py**.
+      - **launch_demo.py** makes multiple calls to **sbatch demo.sbatch** to submit slurm jobs, and 
+        is by default for detecting swallows.
+      - **launch_demo_bats.py** is for bats.
+    - **gen_deploy_station_days_scripts.py** can create a **launch\*.py** file and corresponding **\*.sbatch** files, 
+      when we want each slurm job to include multiple calls to **demo.py** (e.g., process several time periods at 
+      a station within one slurm job). 
+    - **publish_images.sh** sends images generated during system deployment to a server where we archive data
+    - (outdated) **demo.ipynb** is for interactively running the system and not actively maintained
+    - (customization) **demo_tiff.py**, **demo_tiff.sbatch**, **launch_demo_tiff.py** are customized given 
+      rendered arrays as tiff files.
     - (depreciated) **add_local_time_to_output_files.py** takes in scans*.txt and tracks*.txt files produced by 
       system deployment and append local time to each line. Now the system should handle it automatically.
     - (depreciated) **post_hoc_counting** takes in tracks* files and compute estimated numbers of animals in 
@@ -68,7 +72,7 @@ To run detection with GPU, check the cuda version at, for example, `/usr/local/c
 - Monitor from local: `ssh -N -f -L localhost:9990:localhost:9991 username@server`
 - Enter `localhost:9990` from a local browser tab
 
-#### Developing a detection model
+#### Develop a detection model
 - **development** contains all training and evaluation scripts.
 - To prepare a training dataset (i.e. rendering arrays from radar scans and 
 generating json files to define datasets with annotations), refer to 
@@ -76,7 +80,13 @@ generating json files to define datasets with annotations), refer to
 [wsrdata](https://github.com/darkecology/wsrdata.git).
 - Before training, optionally run **try_load_arrays.py** to make sure there's no broken npz files.
 
-#### Run Inference
+Latest model checkpoints are available
+[here](https://drive.google.com/drive/folders/1ApVX-PFYVzRn4lgTZPJNFDHnUbhfcz6E?usp=sharing).
+- v1: Beginning of Summer 2021 Zezhou model.
+- v2: End of Summer 2021 Wenlong model with 48 AP. Better backbone, anchors, and other config.
+- v3: End of Winter 2021 Gustavo model with 55 AP. Adapter layer and temporal features.
+
+#### Deploy the system
 A Colab notebook for running small-scale inference is 
 [here](https://colab.research.google.com/drive/1UD6qtDSAzFRUDttqsUGRhwNwS0O4jGaY?usp=sharing).
 Large-scale deployment can be run on CPU servers as follows.
@@ -117,16 +127,34 @@ For example, DET_CFG can be changed to adopt a new detector.
    EXPERIMENT_NAME output directory. Thereby when we copy newly processed data to the server 
    that hosts the web UI, previous data won't need to be copied again.
 
-#### Deployment Log
-Model checkpoints are available [here](https://drive.google.com/drive/folders/1ApVX-PFYVzRn4lgTZPJNFDHnUbhfcz6E?usp=sharing).
-- v1: Beginning of Summer 2021 Zezhou model.
-- v2: End of Summer 2021 Wenlong model with 48 AP. Good backbone, anchors, etc.
-- v3: End of Winter 2021 Gustavo model with 55 AP. Adapter layer and temporal features.
+#### Notes about array, image, and annotation directions
+- geometric direction: large y is North (row 0 is South), large x is East
+- image direction: large y is South (row 0 is North), large x is East
+1. Rendering
+   1. [Render arrays](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/data/renderer.py#L13) 
+   for the model to process in the **geographic** direction
+   2. [Render png images](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/data/renderer.py#L161) 
+   for visualization in the **image** direction
+   3. Generate the list of scans with successfully rendered arrays
+2. Detector in the **geographic** direction
+   1. During training and evaluation, doesn’t use our defined
+   [Detector class](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/system.py#L27) 
+      1. [dataloader](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/development/experiments_v2/train_roost_detector.py#L220): 
+      XYXY
+   2. During deployment, use our defined 
+   [Detector class](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/system.py#L27) 
+   which wraps a Predictor. The run function of this Detector [flips the y axis](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/detection/detector.py#L115) of predicted boxes to get the **image** direction and outputs [predicted boxes](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/detection/detector.py#L118) in xyr where xy are center coordinates
+4. For rain removal post-processing using dualpol arrays, 
+[flip the y axis](https://github.com/darkecology/roost-system/blob/b27ffd17e773dfeaedac2a79d453395614e8b679/src/roosts/utils/postprocess.py#L188) 
+to operate in the **image** direction
+5. Generate the list of predicted tracks to accompany png images in the **image** direction
 
-#### Website Visualization
-In the generated csv files, the following information could be used to further filter the tracks: 
+
+#### User Interface Visualization
+In the generated csv files that can be imported to a user interface for visualization, 
+the following information could be used to further filter the tracks: 
 - track length
-- detection scores (-1 represents the bbox is not from detector, instead, our tracking algorithm)
+- detection scores (-1 represents that the bbox is not from detector, instead, our tracking algorithm)
 - bbox sizes
 - the minutes from sunrise/sunset of the first bbox in a track
 

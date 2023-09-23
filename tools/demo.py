@@ -6,10 +6,12 @@ warnings.filterwarnings("ignore")
 from roosts.system import RoostSystem
 from roosts.utils.time_util import get_days_list, get_sun_activity_time
 from roosts.utils.s3_util import get_station_day_scan_keys
+from roosts.utils.counting_util import get_bird_rcs
 
 here = os.path.dirname(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--species', type=str, required=True, help="swallow or bat")
 parser.add_argument('--station', type=str, required=True, help="a single station name, eg. KDOX")
 parser.add_argument('--start', type=str, required=True, help="the first local date to process, eg. 20101001")
 parser.add_argument('--end', type=str, required=True, help="the last local date to process, eg. 20101001")
@@ -21,7 +23,7 @@ parser.add_argument('--min_after', type=int, default=90,
 parser.add_argument('--data_root', type=str, help="directory for all outputs",
                     default=f"{here}/../roosts_data")
 parser.add_argument('--just_render', action='store_true', help="just download and render, no detection and tracking")
-parser.add_argument('--model_version', type=str, default="v2")
+parser.add_argument('--model_version', type=str, default="v3")
 parser.add_argument('--gif_vis', action='store_true', help="generate gif visualization")
 parser.add_argument('--aws_access_key_id', type=str, default=None)
 parser.add_argument('--aws_secret_access_key', type=str, default=None)
@@ -60,6 +62,16 @@ PP_CFG = {
     "clean_rain":       True,
 }
 
+# counting config
+assert args.species in ["swallow", "bat"]
+CNT_CFG = {
+    "rcs":              get_bird_rcs(54) if args.species == "swallow" else 4.519,
+    "sweep_number":     0,  # index of the sweep where we extract counts
+    "threshold":        68402,  # threshold above which we consider reflectivity to be too high in the linear scale;
+                                # sometimes helpful to have no threshold, sometimes to cut at 30dbZ
+    "count_scaling":    1.2,  # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
+}
+
 # directories
 DIRS = {
     "scan_dir":                   os.path.join(args.data_root, 'scans'),  # raw scans downloaded from AWS
@@ -72,7 +84,7 @@ DIRS = {
 }
 
 ######################### Run #########################
-roost_system = RoostSystem(args, DET_CFG, PP_CFG, DIRS)
+roost_system = RoostSystem(args, DET_CFG, PP_CFG, CNT_CFG, DIRS)
 
 days = get_days_list(args.start, args.end) # timestamps that indicate the beginning of dates, no time zone info
 print("Total number of days: %d" % len(days), flush=True)

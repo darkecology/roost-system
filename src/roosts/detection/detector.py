@@ -77,11 +77,10 @@ class Detector:
         
         return np.concatenate(image_list, axis=2)
 
-    def run(self, array_files, file_type = "npz"):
-        
+    def run(self, array_files, keys, file_type = "npz"):
         outputs = []
         count = 0
-        for idx, file in enumerate(tqdm(array_files, desc="Detecting")):
+        for idx, (file, key) in enumerate(tqdm(zip(array_files, keys), desc="Detecting")):
             # extract scanname 
             name = os.path.splitext(os.path.basename(file))[0]
             # preprocess data
@@ -122,7 +121,8 @@ class Detector:
                     "scanname" : name, 
                     "det_ID"   : count,
                     "det_score": scores[kk],
-                    "im_bbox"  : bbox_xyr[kk]
+                    "im_bbox"  : bbox_xyr[kk],
+                    "key"      : key
                 }
                 count += 1
                 outputs.append(det)

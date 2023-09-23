@@ -4,14 +4,17 @@ import time
 NUM_CPUS = 7
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-STATIONS = ["KBUF", "KCLE", "KTYX"]
-TIMES = [("20100201", "20100331"), ("20100801", "20100930"),
-         ("20170201", "20170331"), ("20170801", "20170930"),]
+# STATIONS = ["KBUF", "KCLE", "KTYX"]
+# TIMES = [("20100201", "20100331"), ("20100801", "20100930"),
+#          ("20170201", "20170331"), ("20170801", "20170930"),]
+STATIONS = ["KOKX"]
+TIMES = [(f"{year}0601", f"{year}1031") for year in range(2000, 2023)]
 # or
 # STATIONS_TIMES = [
 #     ("KLTX", "20100701", "20100701"),
 # ]
 
+SPECIES = "swallow"
 SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
 MIN_BEFORE = 30
 MIN_AFTER = 90
@@ -48,9 +51,9 @@ for args in args_list:
     --cpus-per-task={NUM_CPUS} \
     --mem-per-cpu=2000 \
     --partition=longq \
-    --time=4-00:00:00 \
+    --time=7-00:00:00 \
     demo.sbatch \
-    --station {station} --start {start} --end {end} \
+    --species {SPECIES} --station {station} --start {start} --end {end} \
     --sun_activity {SUN_ACTIVITY} --min_before {MIN_BEFORE} --min_after {MIN_AFTER} \
     --data_root {DATA_ROOT} --model_version {MODEL_VERSION}'''
     

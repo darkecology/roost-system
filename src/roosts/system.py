@@ -10,11 +10,12 @@ from roosts.utils.visualizer import Visualizer
 from roosts.utils.postprocess import Postprocess
 from roosts.utils.file_util import delete_files
 from roosts.utils.time_util import scan_key_to_local_time
+from roosts.utils.counting_util import calc_n_animals, image2xy
 
 
 class RoostSystem:
 
-    def __init__(self, args, det_cfg, pp_cfg, dirs):
+    def __init__(self, args, det_cfg, pp_cfg, count_cfg, dirs):
         self.args = args
         self.dirs = dirs
         self.downloader = Downloader(
@@ -27,6 +28,7 @@ class RoostSystem:
             self.detector = Detector(**det_cfg)
             self.tracker = Tracker()
             self.postprocess = Postprocess(**pp_cfg)
+            self.count_cfg = count_cfg
             self.visualizer = Visualizer(sun_activity=self.args.sun_activity)
 
     def run_day_station(
@@ -61,11 +63,11 @@ class RoostSystem:
 
         ######################### (2) Render data #########################
         (
-            npz_files,  # the list of arrays for the detector to load and process
-            scan_names, # the list of all scans for the tracker to know
-            img_files,  # the list of dz05 images for visualization
+            npz_files,      # the list of arrays for the detector to load and process
+            scan_names,     # the list of all scans for the tracker to know
+            img_files,      # the list of dz05 images for visualization
+            success_keys,   # the list of keys
         ) = self.renderer.render(keys, logger)
-        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
 
         if len(npz_files) == 0:
             process_end_time = time.time()
@@ -79,6 +81,10 @@ class RoostSystem:
             )
             return
 
+        if self.args.just_render:
+            return
+
+        # initialize output paths
         os.makedirs(self.dirs["scan_and_track_dir"], exist_ok=True)
         scans_path = os.path.join(
             self.dirs["scan_and_track_dir"],
@@ -93,15 +99,17 @@ class RoostSystem:
                 f.write("filename,local_time\n")
         if not os.path.exists(tracks_path):
             with open(tracks_path, 'w') as f:
-                f.write(f'track_id,filename,from_{self.args.sun_activity},det_score,x,y,r,lon,lat,radius,local_time\n')
+                f.write(
+                    f'track_id,filename,from_{self.args.sun_activity},det_score,x,y,r,lon,lat,radius,local_time,'
+                    f'count_scaling,n_animals,overthresh_percent\n'
+                )
+                # we may want to scale a box to be 1.2x large for counting, since
+                # the box annotations used to train models may trace instead of bound roosts
         with open(scans_path, "a+") as f:
             f.writelines([f"{scan_name},{scan_key_to_local_time(scan_name)}\n" for scan_name in scan_names])
 
-        if self.args.just_render:
-            return
-
         ######################### (3) Run detection models on the data #########################
-        detections = self.detector.run(npz_files)
+        detections = self.detector.run(npz_files, success_keys)
         logger.info(f'[Detection Done] {len(detections)} detections')
 
         ######################### (4) Run tracking on the detections #########################
@@ -123,7 +131,20 @@ class RoostSystem:
         )
         logger.info(f'[Postprocessing Done] {len(cleaned_detections)} cleaned detections')
 
-        ######################### (6) Visualize the detection and tracking results #########################
+        ######################### (6) Count animals  #########################
+        for detection in cleaned_detections:
+            detection["count_scaling"] = self.count_cfg["count_scaling"]
+            detection["n_animals"], _, detection["overthresh_percent"], _ = calc_n_animals(
+                pyart.io.read_nexrad_archive(os.path.join(self.dirs["scan_dir"], detection["key"])),
+                self.count_cfg["sweep_number"],
+                image2xy(det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2], k=self.count_cfg["count_scaling"]),
+                self.count_cfg["rcs"],
+                self.count_cfg["threshold"],
+                method="polar",
+            )
+        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
+
+        ######################### (7) Visualize the detection and tracking results #########################
         # generate gif visualization
         if self.args.gif_vis:
             """ visualize detections under multiple thresholds of detection score"""

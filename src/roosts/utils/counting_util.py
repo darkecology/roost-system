@@ -12,10 +12,12 @@ import pyart
 from wsrlib import *
 
 
-def image2xy(x, y, r=0, dim=600, rmax=150000, k=1.0):
+def image2xy(x, y, r, dim=600, rmax=150000, k=1.0):
     '''
     Convert from image coordinates to geometric offset from radar
     '''
+
+    x, y, r = float(x), float(y), float(r)
 
     x0 = y0 = dim / 2.0  # origin
     x =  (x - x0) * 2 * rmax / dim

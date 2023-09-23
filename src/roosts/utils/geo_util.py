@@ -16,7 +16,7 @@ def geo_dist_km(coor1, coor2):
     return distance.distance(coor1, coor2).km
 
 def cart2pol(x, y):
-    dis = np.sqrt(x**2 + y**2)
+    dis = np.sqrt(x ** 2 + y ** 2)
     angle = np.arctan2(y, x)
     return angle, dis
 
@@ -28,7 +28,7 @@ def pol2cmp(angle):
     bearing = np.mod(bearing, 360)
     return bearing 
 
-def get_roost_coor(roost_xy, station_xy, station_name, distance_per_pixel):
+def get_roost_coor(roost_xy, station_xy, station_name, distance_per_pixel, y_direction="image"):
     """ 
         Convert from image coordinates to geographic coordinates
 
@@ -37,12 +37,15 @@ def get_roost_coor(roost_xy, station_xy, station_name, distance_per_pixel):
             station_xy: image coordinates of station 
             station_name: name of station, e.g., KDOX
             distance_per_pixel: geographic distance per pixel, unit: meter
+            y_direction: image (big y means South, row 0 is North) or geographic (big y means North, row 0 is South)
 
         Return:
             longitude, latitide of roost center
     """
     station_lat, station_lon = NEXRAD_LOCATIONS[station_name]["lat"], NEXRAD_LOCATIONS[station_name]["lon"]
-    angle, dis = cart2pol(roost_xy[0]-station_xy[0], -roost_xy[1]+station_xy[1])
+    x_offset = roost_xy[0] - station_xy[0]
+    y_offset = -(roost_xy[1] - station_xy[1]) if y_direction == "image" else roost_xy[1] - station_xy[1]
+    angle, dis = cart2pol(x_offset, y_offset)
     bearing = pol2cmp(angle)
     origin = geopy.Point(station_lat, station_lon)
     des = distance.distance(kilometers=dis * distance_per_pixel/ 1000.).destination(origin, bearing) 
