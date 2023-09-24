@@ -80,6 +80,7 @@ class RoostSystem:
                 f"No successfully rendered scan.\nTotal time elapse: {process_end_time - process_start_time}\n",
                 flush=True
             )
+            delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
             return
 
         if self.args.just_render:
