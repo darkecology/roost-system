@@ -4,10 +4,13 @@ import matplotlib.figure as mplfigure
 import matplotlib.pyplot as plt
 import cv2
 import imageio
+from tqdm import tqdm
+import itertools
+import pyart
+from wsrlib import slant2ground
+from roosts.utils.counting_util import calc_n_animals, xyr2geo, get_unique_sweeps
 import roosts.utils.file_util as fileUtil
 from roosts.utils.time_util import scan_key_to_local_time
-from tqdm import tqdm
-import itertools 
 
 class Visualizer:
 
@@ -271,36 +274,81 @@ class Visualizer:
         imageio.mimsave(outpath, seq, "GIF", **kargs)
             
 
-    def save_predicted_tracks(self, detections, tracks, outpath):
+    def count_and_save(self, detections, tracks, count_cfg, tracks_path, sweeps_path):
+        """Save the list of tracks for UI, also save the list of sweeps and their animal counts"""
         det_dict = {}
         for det in detections:
             det_dict[det["det_ID"]] = det
 
-        with open(outpath, 'a+') as f:
-            n_tracks = 0
+        with open(tracks_path, 'a+') as f:
             for track in tqdm(tracks, desc="Write tracks into csv"):
                 if (("is_windfarm" in track.keys() and track["is_windfarm"]) or
                     ("is_rain" in track.keys() and track["is_rain"])):
                     continue
 
-                saved_track = False
                 # remove the tail of tracks (which are generated from Kalman filter instead of detector)
                 for idx in range(len(track["det_or_pred"]) - 1, -1, -1):
                     if track["det_or_pred"][idx]:
                         last_pred_idx = idx
                         break
+
                 # do not report the tail of tracks
                 for idx, det_ID in enumerate(track["det_IDs"]):
                     if idx > last_pred_idx:
                         break
+
                     det = det_dict[det_ID]
-                    f.write('{:d},{:s},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:s},{:3f},{:.4f},{:.6f}\n'.format(
-                        det["track_ID"], det["scanname"], det[f"from_{self.sun_activity}"], det["det_score"],
+                    from_sun_activity = f"from_{self.sun_activity}"
+
+                    xyr = xyr2geo(
                         det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2],
-                        det["geo_bbox"][0], det["geo_bbox"][1], det["geo_bbox"][2],
-                        scan_key_to_local_time(det["scanname"]),
-                        det["count_scaling"], det["n_animals"], det["overthresh_percent"]
-                    ))
-                    saved_track = True
-                if saved_track:
-                    n_tracks += 1
+                        k=count_cfg["count_scaling"]
+                    )
+                    det["geo_dist"] = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
+
+                    f.write(
+                        ",".join([
+                            f"{det['track_ID']:d}", det["scanname"],
+                            f"{det[from_sun_activity]:.3f}",  # number of minutes from sunrise or sunset
+
+                            f"{det['det_score']:.3f}",
+                            f"{det['im_bbox'][0]:.3f}", f"{det['im_bbox'][1]:.3f}", f"{det['im_bbox'][2]:.3f}",
+                            f"{det['geo_bbox'][0]:.3f}", f"{det['geo_bbox'][1]:.3f}", f"{det['geo_bbox'][2]:.3f}",
+                            f"{det['geo_dist']:.3f}",
+
+                            scan_key_to_local_time(det["scanname"]),
+                        ]) + "\n"
+                    )
+
+                    # count the number of animals in each sweep
+                    with open(sweeps_path, 'a+') as ff:
+                        # loop over sweeps, credit to Maria C. T. D. Belotti
+                        radar = pyart.io.read_nexrad_archive(
+                            os.path.join(self.dirs["scan_dir"], scanname2key[det["scanname"]])
+                        )
+                        try:
+                            sweep_indexes, sweep_angles = get_unique_sweeps(radar)
+                        except:
+                            continue
+
+                        for sweep_index, sweep_angle in zip(sweep_indexes, sweep_angles):
+                            try:
+                                _, height = slant2ground(det["geo_dist"], sweep_angle)
+                                if height > count_cfg["max_height"]:
+                                    break  # TODO: double check that sweep_angles are ordered
+
+                                n_roost_pixels, n_overthresh_pixels, n_animals = calc_n_animals(
+                                    radar, sweep_index, xyr, count_cfg["rcs"], count_cfg["threshold"],
+                                )
+
+                                ff.write(
+                                    ",".join([
+                                        f"{det['track_ID']:d}", det["scanname"],
+                                        sweep_idx, f"{sweep_angle:.3f}",
+
+                                        f"{count_cfg['count_scaling']:.3f}",
+                                        n_roost_pixels, n_overthresh_pixels, f"{n_animals:.3f}"
+                                    ]) + "\n"
+                                )
+                            except:
+                                continue

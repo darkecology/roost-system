@@ -12,7 +12,7 @@ import pyart
 from wsrlib import *
 
 
-def image2xy(x, y, r, dim=600, rmax=150000, k=1.0):
+def xyr2geo(x, y, r, dim=600, rmax=150000, k=1.0):
     '''
     Convert from image coordinates to geometric offset from radar
     '''
@@ -121,7 +121,44 @@ def get_sampling_volume(theta_rad, phi_rad, rng_gate, rngs, equation="chilson"):
         return volume_range
 
 
-def calc_n_animals(radar, sweep_number, detection_coordinates, rcs, threshold, method):
+def get_unique_sweeps(radar):
+    '''
+    Sometimes the radar does the same sweep elevation twice to adjust for range folding.
+    If the current file has duplicated sweeps, this function will select the first one from
+    the list, assuming this will have the lowest nyquist velocity.
+
+    Parameters
+    ----------
+    radar: Radar
+        Py-Art radar object
+
+    Returns
+    -------
+    sweep_inds: array
+        Array with the indexes of the unique sweeps.
+
+    '''
+    fixed_angles = radar.fixed_angle["data"]
+
+    sweep_inds = []
+
+    for angle in fixed_angles:
+        unique_inds = np.where(np.abs(fixed_angles - angle) <= 0.3)[0]
+
+        if len(unique_inds) > 1:
+            unique_inds = unique_inds[0]
+        else:
+            unique_inds = int(unique_inds)
+
+        if unique_inds not in sweep_inds:
+            sweep_inds.append(unique_inds)
+
+    sweep_indexes = np.array(sweep_inds)
+    sweep_angles = fixed_angles[sweep_indexes]
+    return sweep_indexes, sweep_angles
+
+
+def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
     '''
     Calculate the number of animals using one of two methods:
     either by using radar's native polar coordinates or
@@ -131,41 +168,37 @@ def calc_n_animals(radar, sweep_number, detection_coordinates, rcs, threshold, m
     ----------
     radar: Radar
         Py-Art radar object
-    sweep_number: int
-        number of the sweep in the Py-Art format (first is 0)
-    real_angle: float
-        real value of the sweep angle, obtained from the radar file
+    sweep_index: int
+        index of the sweep in the Py-Art format (first is 0)
     detection_coordinates: tuple
         a tuple containing the (x, y) coordinates of the roost and the roost radius in meters
     rcs: float
         radar cross section of target species
     threshold: float
         over this value given in linear scale, reflectivity will be set to zero.
-    method: string
-        what method to use, either "polar" or "by_diameter"
 
     Returns
     -------
+    n_roost_pixels: int
+        number of radar product pixels of the bounding box
+    n_overthresh_pixels: int
+        number of radar product pixels where reflectivity is above the threshold in the bounding box
     n_animals: float
         number of animals calculated by chosen method
     '''
 
     # Get sampled ranges in meters:
     rngs = radar.range['data']
-    rng_max = max(rngs)
 
     #Get range gate in meters:
     rng_gate = radar.range["meters_between_gates"]
 
-    # Get the azimuths of each ray:
-    azs = radar.get_azimuth(sweep_number)
-
     # Get the cartesian coordinates of each gate (sampling bin):
-    coords = radar.get_gate_x_y_z(sweep=sweep_number)
+    coords = radar.get_gate_x_y_z(sweep=sweep_index)
     coords = np.array(coords)
 
     # Retrieve sweep and convert to reflectivity (eta):
-    sweep = radar.get_field(sweep=sweep_number, field_name="reflectivity")
+    sweep = radar.get_field(sweep=sweep_index, field_name="reflectivity")
 
     # If the pixel is NaN, we will set it to the least possible value in dBZ scale:
     sweep = sweep.filled(-33)
@@ -204,9 +237,6 @@ def calc_n_animals(radar, sweep_number, detection_coordinates, rcs, threshold, m
     y_mask = (y > y_min) & (y < y_max).astype(int)
 
     # Create a new mask that has the intersection between x_mask and y_mask:
-    i = 0
-    j = 0
-
     mask = np.zeros((number_of_azimuths, number_of_ranges))
 
     for i in range(number_of_azimuths):
@@ -216,32 +246,32 @@ def calc_n_animals(radar, sweep_number, detection_coordinates, rcs, threshold, m
             else:
                 mask[i, j] = 0
 
-    if method == "polar":
+    theta_rad = get_horizontal_beamwidth(number_of_azimuths)
+    phi_rad = np.deg2rad(1)
 
-        theta_rad = get_horizontal_beamwidth(number_of_azimuths)
-        phi_rad = np.deg2rad(1)
+    volume_range = get_sampling_volume(theta_rad, phi_rad, rng_gate, rngs)
 
-        volume_range = get_sampling_volume(theta_rad, phi_rad, rng_gate, rngs)
+    # Apply mask to sweep matrix
+    masked = sweep * mask
 
-        # Apply mask to sweep matrix
-        masked = sweep * mask
+    # Get the percentage of pixels that exceed the threshold and filter them:
+    n_roost_pixels = sum(sum(masked > 0))
+    n_overthresh_pixels = sum(sum(masked > threshold))
+    masked[masked > threshold] = 0
 
-        # Get the percentage of pixels that exceed the threshold and filter them:
-        roost_area = sum(sum(masked > 0))
-        overthresh_percent = sum(sum(masked > threshold)) / roost_area
-        masked[masked > threshold] = 0
+    # Create an intermediate array where each cell is a multiplication of reflectivity and volume:
+    # This array will have the same dimensions as the raw radar data:
+    roost_matrix = []
 
-        # Create an intermediate array where each cell is a multiplication of reflectivity and volume:
-        # This array will have the same dimensions as the raw radar data:
-        roost_matrix = []
+    # TODO: can we do "roost_matrix = masked * volume_range / rcs"?
 
-        for i in range(len(masked)):
-            ray = masked[i]
-            prod = (ray * volume_range) / rcs
-            roost_matrix.append(prod)
+    for i in range(len(masked)):
+        ray = masked[i]
+        prod = (ray * volume_range) / rcs
+        roost_matrix.append(prod)
 
-        roost_matrix = np.array(roost_matrix)
+    roost_matrix = np.array(roost_matrix)
 
-        n_animals = sum(sum(roost_matrix))
+    n_animals = sum(sum(roost_matrix))
 
-    return n_animals, masked, overthresh_percent, volume_range
+    return n_roost_pixels, n_overthresh_pixels, n_animals

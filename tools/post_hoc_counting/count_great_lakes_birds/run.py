@@ -61,7 +61,7 @@ for model in ["v2", "v3"]:
                 px_c, py_c, pr_c = float(line[4]), float(line[5]), float(line[6])
                 # Convert the pixel coordinates to cartesian values
                 # Change y direction from image to geometric
-                detection_coordinates = image2xy(px_c, py_c, pr_c, k=args.scaling_factor)
+                detection_coordinates = xyr2geo(px_c, py_c, pr_c, k=args.scaling_factor)
         
                 n_animals, _, overthresh_percent, _ = calc_n_animals(
                     radar,

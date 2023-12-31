@@ -43,7 +43,7 @@ for i in range(1, len(lines)):
         px_c, py_c, pr_c = float(line[4]), float(line[5]), float(line[6])
         # TODO add a scaling factor k = 1.2 to match the UI
         # Convert the pixel coordinates to cartesian values:
-        detection_coordinates = image2xy(px_c, py_c, pr_c)
+        detection_coordinates = xyr2geo(px_c, py_c, pr_c)
 
         n_animals, _, overthresh_percent, _ = calc_n_animals(
             radar,

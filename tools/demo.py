@@ -65,11 +65,11 @@ PP_CFG = {
 # counting config
 assert args.species in ["swallow", "bat"]
 CNT_CFG = {
+    "count_scaling":    1.2,    # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
+    "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
     "rcs":              get_bird_rcs(54) if args.species == "swallow" else 4.519,
-    "sweep_number":     0,  # index of the sweep where we extract counts
-    "threshold":        68402,  # threshold above which we consider reflectivity to be too high in the linear scale;
-                                # sometimes helpful to have no threshold, sometimes to cut at 30dbZ
-    "count_scaling":    1.2,  # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
+    "threshold":        21630,  # threshold above which we consider reflectivity to be too high in the linear scale;
+                                # 21630 -> 30dbZ, 68402 -> 35dbZ
 }
 
 # directories

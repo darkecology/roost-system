@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 import time
-from wsrlib import pyart
 from roosts.data.downloader import Downloader
 from roosts.data.renderer import Renderer
 from roosts.detection.detector import Detector
@@ -11,7 +10,6 @@ from roosts.utils.visualizer import Visualizer
 from roosts.utils.postprocess import Postprocess
 from roosts.utils.file_util import delete_files
 from roosts.utils.time_util import scan_key_to_local_time
-from roosts.utils.counting_util import calc_n_animals, image2xy
 
 
 class RoostSystem:
@@ -96,17 +94,32 @@ class RoostSystem:
             self.dirs["scan_and_track_dir"],
             f'tracks_{self.args.station}_{self.args.start}_{self.args.end}.txt'
         )
+        sweeps_path = os.path.join(
+            self.dirs["scan_and_track_dir"],
+            f'sweeps_{self.args.station}_{self.args.start}_{self.args.end}.txt'
+        )
+
         if not os.path.exists(scans_path):
             with open(scans_path, "w") as f:
                 f.write("filename,local_time\n")
+
         if not os.path.exists(tracks_path):
             with open(tracks_path, 'w') as f:
                 f.write(
-                    f'track_id,filename,from_{self.args.sun_activity},det_score,x,y,r,lon,lat,radius,local_time,'
-                    f'count_scaling,n_animals,overthresh_percent\n'
+                    f'track_id,filename,from_{self.args.sun_activity},'
+                    f'det_score,x,y,r,lon,lat,radius,geo_dist,'
+                    f'local_time\n'
+                )
+
+        if not os.path.exists(sweeps_path):
+            with open(sweeps_path, 'w') as f:
+                f.write(
+                    f'track_id,filename,sweep_idx,sweep_angle,'
+                    f'count_scaling,n_roost_pixels,n_overthresh_pixels,n_animals\n'
                 )
                 # we may want to scale a box to be 1.2x large for counting, since
                 # the box annotations used to train models may trace instead of bound roosts
+
         with open(scans_path, "a+") as f:
             f.writelines([f"{scan_name},{scan_key_to_local_time(scan_name)}\n" for scan_name in scan_names])
 
@@ -133,20 +146,7 @@ class RoostSystem:
         )
         logger.info(f'[Postprocessing Done] {len(cleaned_detections)} cleaned detections')
 
-        ######################### (6) Count animals  #########################
-        for det in cleaned_detections:
-            det["count_scaling"] = self.count_cfg["count_scaling"]
-            det["n_animals"], _, det["overthresh_percent"], _ = calc_n_animals(
-                pyart.io.read_nexrad_archive(os.path.join(self.dirs["scan_dir"], scanname2key[det["scanname"]])),
-                self.count_cfg["sweep_number"],
-                image2xy(det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2], k=self.count_cfg["count_scaling"]),
-                self.count_cfg["rcs"],
-                self.count_cfg["threshold"],
-                method="polar",
-            )
-        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
-
-        ######################### (7) Visualize the detection and tracking results #########################
+        ######################### (6) Save detection, tracking, and counting results #########################
         # generate gif visualization
         if self.args.gif_vis:
             """ visualize detections under multiple thresholds of detection score"""
@@ -161,8 +161,12 @@ class RoostSystem:
                 os.path.join(self.dirs["vis_NMS_MERGE_track_dir"], self.args.station, local_year, local_month)
             )
 
-        # save the list of tracks for UI
-        self.visualizer.save_predicted_tracks(cleaned_detections, tracks, tracks_path)
+        # save the list of tracks for UI, also save the list of sweeps and their animal counts
+        self.visualizer.count_and_save(
+            cleaned_detections, tracks, self.count_cfg,
+            tracks_path, sweeps_path
+        )
+        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
 
         process_end_time = time.time()
         logger.info(
