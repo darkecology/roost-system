@@ -261,16 +261,15 @@ def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
 
     # Create an intermediate array where each cell is a multiplication of reflectivity and volume:
     # This array will have the same dimensions as the raw radar data:
-    roost_matrix = []
+    roost_matrix = masked * volume_range / rcs
 
-    # TODO: can we do "roost_matrix = masked * volume_range / rcs"?
-
-    for i in range(len(masked)):
-        ray = masked[i]
-        prod = (ray * volume_range) / rcs
-        roost_matrix.append(prod)
-
-    roost_matrix = np.array(roost_matrix)
+    # roost_matrix = []
+    # for i in range(len(masked)):
+    #     ray = masked[i]
+    #     prod = (ray * volume_range) / rcs
+    #     roost_matrix.append(prod)
+    #
+    # roost_matrix = np.array(roost_matrix)
 
     n_animals = sum(sum(roost_matrix))
 

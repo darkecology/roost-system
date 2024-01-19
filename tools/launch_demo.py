@@ -4,14 +4,21 @@ import time
 NUM_CPUS = 7
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-STATIONS = ["KABR", "KABX", "KAKQ"]
-TIMES = [("20220101", "20221231"),]
+# STATIONS = ["KABR", "KABX", "KAKQ"]
+# TIMES = [("20220101", "20221231"),]
 # STATIONS = ["KOKX"]
 # TIMES = [(f"{year}0601", f"{year}1031") for year in range(2000, 2023)]
 # or
-# STATIONS_TIMES = [
-#     ("KLTX", "20100701", "20100701"),
-# ]
+STATIONS_TIMES = [
+    ("KTYX", "20200101", "20201231"),
+    ("KTYX", "20220101", "20221231"),
+    ("KLIX", "20200101", "20201231"),
+    ("KLIX", "20220101", "20221231"),
+    ("KDAX", "20200101", "20201231"),
+    ("KDAX", "20220101", "20221231"),
+    ("KTLX", "20200101", "20201231"),
+    ("KTLX", "20220101", "20221231"),
+]
 
 SPECIES = "swallow"
 SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
@@ -19,7 +26,7 @@ MIN_BEFORE = 30
 MIN_AFTER = 90
 # directory for system outputs
 MODEL_VERSION = "v3"
-EXPERIMENT_NAME = f"us_sunrise_roosts_{MODEL_VERSION}_pilot"
+EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}_pilot0119"
 DATA_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/{EXPERIMENT_NAME}"
 
 try:

@@ -5,7 +5,7 @@ import logging
 import time
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltc
-from matplotlib import image
+from matplotlib.image import imsave
 from tqdm import tqdm
 
 
@@ -113,7 +113,7 @@ class Renderer:
             os.makedirs(vr05_imgdir, exist_ok=True)
 
             npz_path = os.path.join(npz_dir, f"{scan}.npz")
-            dz05_path = os.path.join(dz05_imgdir, f"{scan}.png")
+            dz05_path = os.path.join(dz05_imgdir, f"{scan}.jpg")
 
             if os.path.exists(npz_path) and os.path.exists(dz05_path) and not force_rendering:
                 npz_files.append(npz_path)
@@ -161,4 +161,4 @@ class Renderer:
             rgb = rgb[::-1, :, :3]
                 # flip the y axis, from geographical (big y means North) to image (big y means lower)
                 # omit the fourth alpha dimension, NAN are black but not white
-            image.imsave(os.path.join(self.imgdirs[(attr, elev)], utc_date_station_prefix, f"{scan}.png"), rgb)
+            imsave(os.path.join(self.imgdirs[(attr, elev)], utc_date_station_prefix, f"{scan}.jpg"), rgb)
