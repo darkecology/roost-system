@@ -163,8 +163,8 @@ class RoostSystem:
 
         # save the list of tracks for UI, also save the list of sweeps and their animal counts
         self.visualizer.count_and_save(
-            cleaned_detections, tracks, self.count_cfg,
-            tracks_path, sweeps_path
+            cleaned_detections, tracks, self.postprocess.geosize, self.count_cfg,
+            self.dirs["scan_dir"], scanname2key, tracks_path, sweeps_path
         )
         delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
 

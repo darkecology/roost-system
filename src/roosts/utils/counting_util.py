@@ -22,7 +22,7 @@ def xyr2geo(x, y, r, dim=600, rmax=150000, k=1.0):
     x0 = y0 = dim / 2.0  # origin
     x =  (x - x0) * 2 * rmax / dim
     y = -(y - y0) * 2 * rmax / dim
-    r = r * 2 * k * rmax / dim  # TODO: scaling by k may cause the r to be larger than the scope
+    r = r * k * 2 * rmax / dim  # TODO: scaling by k may cause the r to be larger than the scope
 
     return (x, y, r)
 

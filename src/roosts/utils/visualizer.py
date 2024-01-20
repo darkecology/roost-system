@@ -274,7 +274,10 @@ class Visualizer:
         imageio.mimsave(outpath, seq, "GIF", **kargs)
             
 
-    def count_and_save(self, detections, tracks, count_cfg, tracks_path, sweeps_path):
+    def count_and_save(
+        self, detections, tracks, geosize, count_cfg,
+        scan_dir, scanname2key, tracks_path, sweeps_path
+    ):
         """Save the list of tracks for UI, also save the list of sweeps and their animal counts"""
         det_dict = {}
         for det in detections:
@@ -303,7 +306,7 @@ class Visualizer:
                     xyr = xyr2geo(
                         det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2],
                         k=count_cfg["count_scaling"]
-                    )
+                    )  # geometric offset to radar
                     det["geo_dist"] = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
 
                     f.write(
@@ -324,7 +327,7 @@ class Visualizer:
                     with open(sweeps_path, 'a+') as ff:
                         # loop over sweeps, credit to Maria C. T. D. Belotti
                         radar = pyart.io.read_nexrad_archive(
-                            os.path.join(self.dirs["scan_dir"], scanname2key[det["scanname"]])
+                            os.path.join(scan_dir, scanname2key[det["scanname"]])
                         )
                         try:
                             sweep_indexes, sweep_angles = get_unique_sweeps(radar)
@@ -344,10 +347,10 @@ class Visualizer:
                                 ff.write(
                                     ",".join([
                                         f"{det['track_ID']:d}", det["scanname"],
-                                        sweep_idx, f"{sweep_angle:.3f}",
+                                        f"{sweep_index}", f"{sweep_angle:.3f}",
 
                                         f"{count_cfg['count_scaling']:.3f}",
-                                        n_roost_pixels, n_overthresh_pixels, f"{n_animals:.3f}"
+                                        f"{n_roost_pixels}", f"{n_overthresh_pixels}", f"{n_animals:.3f}"
                                     ]) + "\n"
                                 )
                             except:
