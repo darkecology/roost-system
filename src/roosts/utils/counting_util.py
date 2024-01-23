@@ -233,18 +233,7 @@ def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
     y_max = max(y_unique[y_inds])
 
     # Use the extreme values to create two masks, one for each axis array:
-    x_mask = (x > x_min) & (x < x_max).astype(int)
-    y_mask = (y > y_min) & (y < y_max).astype(int)
-
-    # Create a new mask that has the intersection between x_mask and y_mask:
-    mask = np.zeros((number_of_azimuths, number_of_ranges))
-
-    for i in range(number_of_azimuths):
-        for j in range(number_of_ranges):
-            if ((x_mask[i, j] == 1) and (y_mask[i, j] == 1)):
-                mask[i, j] = 1
-            else:
-                mask[i, j] = 0
+    mask = ((x > x_min) & (x < x_max) & (y > y_min) & (y < y_max)).astype(int)
 
     theta_rad = get_horizontal_beamwidth(number_of_azimuths)
     phi_rad = np.deg2rad(1)
@@ -262,15 +251,6 @@ def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
     # Create an intermediate array where each cell is a multiplication of reflectivity and volume:
     # This array will have the same dimensions as the raw radar data:
     roost_matrix = masked * volume_range / rcs
-
-    # roost_matrix = []
-    # for i in range(len(masked)):
-    #     ray = masked[i]
-    #     prod = (ray * volume_range) / rcs
-    #     roost_matrix.append(prod)
-    #
-    # roost_matrix = np.array(roost_matrix)
-
     n_animals = sum(sum(roost_matrix))
 
     return n_roost_pixels, n_overthresh_pixels, n_animals
