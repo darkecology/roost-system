@@ -20,16 +20,18 @@ Roost detection is based on [Detectron2](https://github.com/darkecology/detectro
 - **tools** is for system deployment
     - **demo.py** downloads radar scans, renders arrays to be processed by models and some channels as images for 
       visualization, detects and tracks roosts in them, and postprocesses the results.
-      - **demo.sbatch** defines a slurm job which calls **demo.py**.
-      - **launch_demo.py** makes multiple calls to **sbatch demo.sbatch** to submit slurm jobs, and 
-        is by default for detecting swallows.
-      - **launch_demo_bats.py** is for bats.
-    - **gen_deploy_station_days_scripts.py** can create a **launch\*.py** file and corresponding **\*.sbatch** files, 
+      - **launch_demo.py** can call **sbatch demo.sh** multiple times to launch multiple jobs in parallel, 
+        each for a station-year and on separate cpus. It is configured for birds.
+        - **launch_demo_bats.py** is configured for bats.
+      - **demo.sh** includes commands to run for each station-year, including running **demo.py** and 
+        pushing outputs from the computing cluster to our doppler server.
+    - **gen_deploy_station_days_scripts.py** can create a **launch\*.py** file and corresponding **\*.sh** files, 
       when we want each slurm job to include multiple calls to **demo.py** (e.g., process several time periods at 
       a station within one slurm job). 
-    - **publish_images.sh** sends images generated during system deployment to a server where we archive data
+    - **publish_images.sh** sends images generated during system deployment to a server where we archive data. 
+      This has been incorporated into **demo.sh**.
     - (outdated) **demo.ipynb** is for interactively running the system and not actively maintained
-    - (customization) **demo_tiff.py**, **demo_tiff.sbatch**, **launch_demo_tiff.py** are customized given 
+    - (customization) **launch_demo_tiff.py**, **demo_tiff.sh**, **demo_tiff.py** are customized given 
       rendered arrays as tiff files.
     - (depreciated) **add_local_time_to_output_files.py** takes in scans*.txt and tracks*.txt files produced by 
       system deployment and append local time to each line. Now the system should handle it automatically.
@@ -104,12 +106,13 @@ Review the updated AWS config.
     ```
 
 3. Modify **demo.py** for system customization. 
-For example, DET_CFG can be changed to adopt a new detector.
+For example, DET_CFG can be changed to adopt a new detector. 
+CNT_CFG can be changed for different counting assumptions.
 
 4. Make sure the environment is activated. Then consider two deployment scenarios.
    1. In the first, we process consecutive days at stations, i.e. we launch one job for 
-   each set of continuous days at a station. Modify VARIABLES in **tools/launch_demo.py**.
-   Then under **tools**, run `python launch_demo.py` 
+   each set of continuous days at a station.
+   Under **tools**, modify VARIABLES in **launch_demo.py** and run `python launch_demo.py` 
    to submit jobs to slurm and process multiple batches of data. 
 
    2. In the second, we process scattered days at stations, i.e. we launch one job for 

@@ -24,7 +24,7 @@ cmd = f'''sbatch \
 --mem-per-cpu=2000 \
 --partition=longq \
 --time=2-00:00:00 \
-demo_tiff.sbatch --data_root {DATA_ROOT}'''
+demo_tiff.sh --data_root {DATA_ROOT}'''
 
 os.system(cmd)
 time.sleep(1)

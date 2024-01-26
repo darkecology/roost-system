@@ -36,7 +36,7 @@ for station in STATIONS_TIMES:
     slurm_error = os.path.join(slurm_logs, f"{station}.err")
     os.makedirs(slurm_logs, exist_ok=True)
 
-    script_path = os.path.join(script_dir, station+'.sbatch')
+    script_path = os.path.join(script_dir, station+'.sh')
     with open(script_path, 'w') as f:
         f.write('#!/bin/bash\n')
         f.write('hostname\n')
