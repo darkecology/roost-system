@@ -334,11 +334,11 @@ class Visualizer:
                         except:
                             continue
 
-                        for sweep_index, sweep_angle in zip(sweep_indexes, sweep_angles):
+                        for sweep_index, sweep_angle in sorted(zip(sweep_indexes, sweep_angles), key=lambda x: x[1]):
                             try:
                                 _, height = slant2ground(det["geo_dist"], sweep_angle)
                                 if height > count_cfg["max_height"]:
-                                    break  # TODO: double check that sweep_angles are ordered
+                                    break
 
                                 n_roost_pixels, n_overthresh_pixels, n_animals = calc_n_animals(
                                     radar, sweep_index, xyr, count_cfg["rcs"], count_cfg["threshold"],
