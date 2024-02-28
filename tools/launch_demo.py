@@ -6,34 +6,28 @@ import time
 
 # Config for deploying the system
 NUM_CPUS = 7
+
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-# STATIONS = ["KABR", "KABX", "KAKQ"]
-# TIMES = [("20220101", "20221231"),]
-# STATIONS = ["KOKX"]
-# TIMES = [(f"{year}0601", f"{year}1031") for year in range(2000, 2023)]
+STATIONS = ["KOKX"]
+TIMES = [(f"{year}0101", f"{year}1231") for year in range(9999, 10000)]
 # or
-STATIONS_TIMES = [
-    ("KTYX", "20200805", "20200806"),
-    # ("KTYX", "20200101", "20201231"),
-    # ("KTYX", "20220101", "20221231"),
-    # ("KLIX", "20200101", "20201231"),
-    # ("KLIX", "20220101", "20221231"),
-    # ("KDAX", "20200101", "20201231"),
-    # ("KDAX", "20220101", "20221231"),
-    # ("KTLX", "20200101", "20201231"),
-    # ("KTLX", "20220101", "20221231"),
-]
+# STATIONS_TIMES = [
+#     ("KTYX", "20200805", "20200806"),
+# ]
+
 SPECIES = "swallow"
 SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
 MIN_BEFORE = 30
 MIN_AFTER = 90
+
 # directory for system outputs
 MODEL_VERSION = "v3"
-EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}_pilot0119" # dataset name
+EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}" # dataset name
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/{EXPERIMENT_NAME}"
-SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
+
 # Config for transferring outputs from the computing cluster to our server
+SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
 DST_HOST = "doppler.cs.umass.edu"
 DST_IMG = "/var/www/html/roost/img" # dz05 and vr05 jpg images
 DST_PRED = "/scratch2/wenlongzhao/roostui/data" # csv for scans_and_tracks
@@ -63,8 +57,14 @@ for args in args_list:
 
     # Now we request cpus via slurm to run the job
     cmd = f'''sbatch \
-    --job-name="{station}{start}_{end}" --output="{slurm_output}" --error="{slurm_error}" \
-    --partition=longq --nodes=1 --ntasks=1 --cpus-per-task={NUM_CPUS} --mem-per-cpu=2000 \
+    --job-name="{station}{start}_{end}" \
+    --output="{slurm_output}" \
+    --error="{slurm_error}" \
+    --partition=longq \
+    --nodes=1 \
+    --ntasks=1 \
+    --cpus-per-task={NUM_CPUS} \
+    --mem-per-cpu=2000 \
     --time=7-00:00:00 \
     demo.sh \
     {SPECIES} {station} {start} {end} \

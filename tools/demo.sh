@@ -22,21 +22,21 @@ python demo.py \
 --sun_activity ${SUN_ACTIVITY} --min_before ${MIN_BEFORE} --min_after ${MIN_AFTER} \
 --data_root ${OUTPUT_ROOT} --model_version ${MODEL_VERSION}
 
-# transfer outputs
-cd ${OUTPUT_ROOT}
-# (1) images to visualize dz05 and vr05
-ssh ${DST_HOST} mkdir -p ${DST_IMG}/${DATASET}
-rsync -avz ui/img/* ${DST_HOST}:${DST_IMG}/${DATASET}/
-# (2) csv for scans_and_tracks
-ssh ${DST_HOST} mkdir -p ${DST_PRED}/${DATASET}
-rsync -avz ui/scans_and_tracks/* ${DST_HOST}:${DST_PRED}/${DATASET}/
-# (3) arrays
-rsync -a arrays/ ${DST_HOST}:${DST_ARRAY}
-# (4) logs and empty scans directory
-ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${DATASET}/logs
-rsync -a logs/ ${DST_HOST}:${DST_OTHERS}/${DATASET}/logs/
-ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${DATASET}/scans
-rsync -a scans/ ${DST_HOST}:${DST_OTHERS}/${DATASET}/scans/
-# (5) slurm_logs
-ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs
-scp -r ${SRC_SLURM}/${DATASET} ${DST_HOST}:${DST_OTHERS}/slurm_logs/
+# transfer outputs TODO: avoid repeated transfer, make it station-year specific
+#cd ${OUTPUT_ROOT}
+## (1) images to visualize dz05 and vr05
+#ssh ${DST_HOST} mkdir -p ${DST_IMG}/${DATASET}
+#rsync -avz ui/img/* ${DST_HOST}:${DST_IMG}/${DATASET}/
+## (2) csv for scans_and_tracks
+#ssh ${DST_HOST} mkdir -p ${DST_PRED}/${DATASET}
+#rsync -avz ui/scans_and_tracks/* ${DST_HOST}:${DST_PRED}/${DATASET}/
+## (3) arrays
+#rsync -a arrays/ ${DST_HOST}:${DST_ARRAY}
+## (4) logs and empty scans directory
+#ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${DATASET}/logs
+#rsync -a logs/ ${DST_HOST}:${DST_OTHERS}/${DATASET}/logs/
+#ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${DATASET}/scans
+#rsync -a scans/ ${DST_HOST}:${DST_OTHERS}/${DATASET}/scans/
+## (5) slurm_logs
+#ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs
+#scp -r ${SRC_SLURM}/${DATASET} ${DST_HOST}:${DST_OTHERS}/slurm_logs/

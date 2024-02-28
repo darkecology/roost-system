@@ -63,16 +63,24 @@ PP_CFG = {
 }
 
 # counting config
-assert args.species in ["swallow", "bat"]
-CNT_CFG = {
-    "count_scaling":    1.2,    # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
-    "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
-    "rcs":              get_bird_rcs(54) if args.species == "swallow" else 4.519,
-    "threshold":        21630 if args.species == "swallow" else 21630891,
-                                # threshold above which we consider reflectivity to be too high in the linear scale:
-                                # 30dbZ -> 21630, 35dbZ -> 68402;
-                                # 60dbZ -> 21630891
-}
+if args.species == "swallow":  # Entire US deployment
+    CNT_CFG = {
+        "count_scaling":    1.2,    # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
+        "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
+        "rcs":              1,      # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
+                                    # once considered setting get_bird_rcs(54)
+        "threshold":        216309, # threshold above which we consider reflectivity to be too high in the linear scale:
+                                    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
+    }
+elif args.species == "bat":  # Texas bats deployment
+    CNT_CFG = {
+        "count_scaling":    1.2,
+        "max_height":       5000,
+        "rcs":              4.519,
+        "threshold":        21630891,  # 60dbZ
+    }
+else:
+    raise ValueError("args.species has to be either swallow or bat")
 
 # directories
 DIRS = {
@@ -88,7 +96,7 @@ DIRS = {
 ######################### Run #########################
 roost_system = RoostSystem(args, DET_CFG, PP_CFG, CNT_CFG, DIRS)
 
-days = get_days_list(args.start, args.end) # timestamps that indicate the beginning of dates, no time zone info
+days = get_days_list(args.start, args.end)  # timestamps that indicate the beginning of dates, no time zone info
 print("Total number of days: %d" % len(days), flush=True)
 for day_idx, day in enumerate(days):
     process_start_time = time.time()
