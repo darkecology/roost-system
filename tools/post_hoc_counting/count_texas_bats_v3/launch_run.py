@@ -1,6 +1,6 @@
 import os, time
 
-INPUT_DIR = "texas_bats_v3"  # TODO
+INPUT_DIR = "texas_bats_v3_more"  # TODO
 COUNTING_METHOD_IDX = 2
 THRESHOLD = 216309  # 40dbZ
 DUALPOL = False
@@ -27,10 +27,10 @@ for file in os.listdir(INPUT_DIR):
     --partition=longq \
     --time=4-00:00:00 \
     run.sh \
-    --dir {INPUT_DIR} --file {file} \
+    --input_dir {INPUT_DIR} --file {file} \
     --counting_method_idx {COUNTING_METHOD_IDX} \
     --threshold {THRESHOLD} \
-    --dualpol {DUALPOL}'''  # TODO
+    --dualpol {DUALPOL}'''
 
     os.system(cmd)
     time.sleep(1)

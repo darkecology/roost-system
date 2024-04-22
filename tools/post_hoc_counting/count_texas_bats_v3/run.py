@@ -5,7 +5,7 @@ from roosts.utils.counting_util import *
 import os, csv, argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dir', type=str, required=True)
+parser.add_argument('--input_dir', type=str, required=True)
 parser.add_argument('--file', type=str, required=True)
 
 parser.add_argument('--counting_method_idx', type=int, required=True)
@@ -21,12 +21,12 @@ count_cfg = {
     "threshold": args.threshold,
 }
 
-INPUT_DIR = args.dir
+INPUT_DIR = args.input_dir
 with open(os.path.join(INPUT_DIR, args.file), "r") as f:
     lines = [line.rstrip().split(",") for line in f.readlines()]
     # track_id,filename,from_sunset,det_score,x,y,r,lon,lat,radius,geo_dist,local_time
 
-OUTPUT_DIR = f"{args.dir}_with_counts"
+OUTPUT_DIR = f"{args.input_dir}_with_counts"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 f_sweeps = open(os.path.join(OUTPUT_DIR, f"sweeps{args.counting_method_idx}{args.file[6:]}"), "w")
 f_sweeps.write(
@@ -39,12 +39,23 @@ for i in range(1, len(lines)):
         print(i)
     line = lines[i]
 
+    xyr = xyr2geo(
+        line[4], line[5], line[6], k=count_cfg["count_scaling"]
+    )  # geometric offset to radar
+    geo_dist = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
+
     filename = line[1]
     try:
         # https://github.com/darkecology/pywsrlib/blob/master/wsrlib/wsrlib.py#L161
         radar = read_http(filename)
+    except Exception as error:
+        print(f"line {i} has an error in loading the radar scan: ", error)
+        continue
+
+    try:
         sweep_indexes, sweep_angles = get_unique_sweeps(radar)
-    except:
+    except Exception as error:
+        print(f"line {i} has an error in getting unique sweeps: ", error)
         continue
 
     for sweep_index, sweep_angle in sorted(zip(sweep_indexes, sweep_angles), key=lambda x: x[1]):
@@ -69,5 +80,6 @@ for i in range(1, len(lines)):
                     f"{n_animals:.3f}"
                 ]) + "\n"
             )
-        except:
+        except Exception as error:
+            print(f"line {i} sweep {sweep_index} has an error in counting animals: ", error)
             continue
