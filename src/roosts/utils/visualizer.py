@@ -305,13 +305,20 @@ class Visualizer:
 
                     xyr = xyr2geo(
                         det["im_bbox"][0], det["im_bbox"][1], det["im_bbox"][2],
+                        rmax=geosize / 2,  # 300000km / 2
                         k=count_cfg["count_scaling"]
                     )  # geometric offset to radar
                     det["geo_dist"] = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
 
+                    local_time = scan_key_to_local_time(det["scanname"])
                     f.write(
                         ",".join([
-                            f"{det['track_ID']:d}", det["scanname"],
+                            # UI will convert this track index i into SSSSYYYYMMDD-i
+                            # YYYYMMDD: local date
+                            # https://github.com/darkecology/roostui/blob/69265e027705d4505870275839fd0a5c86be9ed5/js/vis.js#L479
+                            f"{det['track_ID']:d}",
+
+                            det["scanname"],
                             f"{det[from_sun_activity]:.3f}",  # number of minutes from sunrise or sunset
 
                             f"{det['det_score']:.3f}",
@@ -319,7 +326,7 @@ class Visualizer:
                             f"{det['geo_bbox'][0]:.3f}", f"{det['geo_bbox'][1]:.3f}", f"{det['geo_bbox'][2]:.3f}",
                             f"{det['geo_dist']:.3f}",
 
-                            scan_key_to_local_time(det["scanname"]),
+                            local_time,
                         ]) + "\n"
                     )
 
@@ -346,9 +353,14 @@ class Visualizer:
 
                                 ff.write(
                                     ",".join([
-                                        f"{det['track_ID']:d}", det["scanname"],
-                                        f"{sweep_index}", f"{sweep_angle:.3f}",
+                                        # This sweep file is not processed by the UI
+                                        # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
+                                        # YYYYMMDD: local date
+                                        f"{filename[:4]}{local_time[:8]}-{det['track_ID']:d}",
 
+                                        det["scanname"],
+
+                                        f"{sweep_index}", f"{sweep_angle:.3f}",
                                         f"{count_cfg['count_scaling']:.3f}",
                                         f"{n_roost_pixels}", f"{n_overthresh_pixels}", f"{n_animals:.3f}"
                                     ]) + "\n"

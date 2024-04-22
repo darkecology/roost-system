@@ -158,7 +158,7 @@ def get_unique_sweeps(radar):
     return sweep_indexes, sweep_angles
 
 
-def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
+def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold, dualpol=False):
     '''
     Calculate the number of animals using one of two methods:
     either by using radar's native polar coordinates or
@@ -176,6 +176,8 @@ def calc_n_animals(radar, sweep_index, detection_coordinates, rcs, threshold):
         radar cross section of target species
     threshold: float
         over this value given in linear scale, reflectivity will be set to zero.
+    dualpol: bool TODO
+        whether to use dualpol to filter out weather pixels, if dualpol products are available in the scan
 
     Returns
     -------
