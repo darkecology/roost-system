@@ -113,12 +113,17 @@ class RoostSystem:
 
         if not os.path.exists(sweeps_path):
             with open(sweeps_path, 'w') as f:
-                f.write(
-                    f'track_id,filename,sweep_idx,sweep_angle,'
-                    f'count_scaling,n_roost_pixels,n_overthresh_pixels,n_animals\n'
-                )
-                # we may want to scale a box to be 1.2x large for counting, since
-                # the box annotations used to train models may trace instead of bound roosts
+                title = 'track_id,filename,sweep_idx,sweep_angle,count_scaling,' \
+                        'n_roost_pixels,n_weather_pixels'
+                # counting animals in filtered pixels
+                # e.g., n_highZ_pixels_60,n_highZ_pixels_40,n_animals,n_animals_60,n_animals_40
+                for threshold in self.count_cfg["threshold_linZ"].keys():
+                    title += f',n_highZ_pixels_{threshold}'
+                title += f',n_animals'
+                for threshold in self.count_cfg["threshold_linZ"].keys():
+                    title += f',n_animals_{threshold}'
+                title += '\n'
+                f.write(title)
 
         with open(scans_path, "a+") as f:
             f.writelines([f"{scan_name},{scan_key_to_local_time(scan_name)}\n" for scan_name in scan_names])

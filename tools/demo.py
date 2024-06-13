@@ -1,4 +1,5 @@
 import argparse, time, os, torch, warnings
+import numpy as np
 from datetime import timedelta
 print(f"torch.get_num_threads: {torch.get_num_threads()}", flush=True)
 warnings.filterwarnings("ignore")
@@ -65,19 +66,29 @@ PP_CFG = {
 # counting config
 if args.species == "swallow":  # Entire US deployment
     CNT_CFG = {
-        "count_scaling":    1.2,    # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
+        "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
         "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
         "rcs":              1,      # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
                                     # once considered setting get_bird_rcs(54)
-        "threshold":        216309, # threshold above which we consider reflectivity to be too high in the linear scale:
+        "threshold_corr":   0.95,   # np.nan if we don't want to use a dual-pol cross correlation threshold
+        "threshold_linZ":   {
+            60: 21630891,           # 60dBZ
+            40: 216309,             # 40dBZ
+        }                           # linear scale threshold above which we consider reflectivity to be too high,
                                     # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
+                                    # empty dict if we don't want to use a reflectivity threshold
     }
 elif args.species == "bat":  # Texas bats deployment
     CNT_CFG = {
         "count_scaling":    1.2,
         "max_height":       5000,
         "rcs":              4.519,
-        "threshold":        21630891,  # 60dbZ
+        "threshold_corr":   0.95,   # np.nan if we don't want to use a dual-pol cross correlation threshold
+        "threshold_linZ": {
+            60: 21630891,           # 60dBZ
+            40: 216309,             # 40dBZ
+        }                           # linear scale threshold above which we consider reflectivity to be too high,
+                                    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
     }
 else:
     raise ValueError("args.species has to be either swallow or bat")

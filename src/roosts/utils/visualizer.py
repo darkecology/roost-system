@@ -347,23 +347,56 @@ class Visualizer:
                                 if height > count_cfg["max_height"]:
                                     break
 
-                                n_roost_pixels, n_overthresh_pixels, n_animals = calc_n_animals(
-                                    radar, sweep_index, xyr, count_cfg["rcs"], count_cfg["threshold"],
+                                output = [
+                                    # This sweep file is not processed by the UI
+                                    # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
+                                    # YYYYMMDD: local date
+                                    f"{filename[:4]}{local_time[:8]}-{det['track_ID']:d}",
+
+                                    det["scanname"],
+                                    f"{sweep_index}",
+                                    f"{sweep_angle:.3f}",
+                                    f"{count_cfg['count_scaling']:.3f}",
+                                ]
+                                n_highZ_pixels_by_linZ_filter = {
+                                    dBZ: None for dBZ in count_cfg["threshold_linZ"].keys()
+                                }
+                                n_animals_by_linZ_filter = {dBZ: None for dBZ in count_cfg["threshold_linZ"].keys()}
+
+                                # count animals without dBZ filtering
+                                n_roost_pixels, n_weather_pixels, _, n_animals_no_linZ_filter = calc_n_animals(
+                                    radar,
+                                    sweep_index,
+                                    xyr,
+                                    count_cfg["rcs"],
+                                    threshold_corr=count_cfg["threshold_corr"],
                                 )
+                                output += [f"{n_roost_pixels}", f"{n_weather_pixels}"]
 
-                                ff.write(
-                                    ",".join([
-                                        # This sweep file is not processed by the UI
-                                        # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
-                                        # YYYYMMDD: local date
-                                        f"{filename[:4]}{local_time[:8]}-{det['track_ID']:d}",
+                                # count animals with dBZ filtering
+                                for i, (dBZ, linZ) in enumerate(count_cfg["threshold_linZ"].items()):
+                                    (
+                                        _, _, n_highZ_pixels_by_linZ_filter[dBZ], n_animals_by_linZ_filter[dBZ]
+                                    )= calc_n_animals(
+                                        radar,
+                                        sweep_index,
+                                        xyr,
+                                        count_cfg["rcs"],
+                                        threshold_corr=count_cfg["threshold_corr"],
+                                        threshold_linZ=linZ,
+                                    )
 
-                                        det["scanname"],
+                                # output
+                                output += [
+                                    f"{n_highZ_pixels_by_linZ_filter[dBZ]}"
+                                    for dBZ in count_cfg["threshold_linZ"].keys()
+                                ]
+                                output += [f"{n_animals_no_linZ_filter:.3f}"]
+                                output += [
+                                    f"{n_animals_by_linZ_filter[dBZ]:.3f}"
+                                    for dBZ in count_cfg["threshold_linZ"].keys()
+                                ]
+                                ff.write(",".join(output) + "\n")
 
-                                        f"{sweep_index}", f"{sweep_angle:.3f}",
-                                        f"{count_cfg['count_scaling']:.3f}",
-                                        f"{n_roost_pixels}", f"{n_overthresh_pixels}", f"{n_animals:.3f}"
-                                    ]) + "\n"
-                                )
                             except:
                                 continue

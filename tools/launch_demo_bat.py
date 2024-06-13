@@ -13,6 +13,9 @@ TIMES = []
 for year in [1994, 1995, 1996, 1997, 1998, 1999, 2021, 2022, 2023]:
     for (start_date, end_date) in [("0101", "1231")]:
         TIMES.append((str(year)+start_date, str(year)+end_date))
+# for transferring outputs from the computing cluster to our server
+# STATIONS = ["XXXX"]
+# TIMES = [("99990101", "99991201")]
 
 SPECIES = "bat"
 SUN_ACTIVITY = "sunset" # bat activities occur around sunset
