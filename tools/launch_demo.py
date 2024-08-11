@@ -9,32 +9,63 @@ NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-STATIONS = ["KOKX"]
-TIMES = [(f"{year}0101", f"{year}1231") for year in range(9999, 10000)]
+STATIONS = [
+    "KCAE",
+    # "KCBW",
+    # "KGYX",
+    # "KBOX",
+    # "KOKX",
+    # "KCXX",
+    # "KENX",
+    # "KDIX",
+    # "KDOX",
+    # "KTYX",
+    # "KBGM",
+    # "KMHX",
+    # "KAKQ",
+    # "KLWX",
+    # "KCCX",
+    # "KLTX",
+    # "KRAX",
+    # "KBUF",
+    # "KPBZ",
+    # "KFCX",
+    # "KAMX",
+    # "KMLB",
+    # "KCLX",
+    # "KJAX",
+    # "KBYX",
+]
+TIMES = [
+    # (f"{year}0601", f"{year}1231") for year in range(2013, 2024)
+    (f"{year}0601", f"{year}0602") for year in [2010]
+]
 # or
 # STATIONS_TIMES = [
 #     ("KTYX", "20200805", "20200806"),
 # ]
+# for transferring outputs from the computing cluster to our server
+# STATIONS = ["XXXX"]
+# TIMES = [("99990101", "99991201")]
 
 SPECIES = "swallow"
 SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
-MIN_BEFORE = 30
+MIN_BEFORE = 60
 MIN_AFTER = 90
 
-# directory for system outputs
+# directory for system outputs: ${OUTPUT_ROOT}/${EXPERIMENT_NAME}
+OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data"
 MODEL_VERSION = "v3"
-EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}" # dataset name
-OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/{EXPERIMENT_NAME}"
+EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}_debug" # dataset name
 
 # Config for transferring outputs from the computing cluster to our server
 SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
+
 DST_HOST = "doppler.cs.umass.edu"
 DST_IMG = "/var/www/html/roost/img" # dz05 and vr05 jpg images
-DST_PRED = "/scratch2/wenlongzhao/roostui/data" # csv for scans_and_tracks
+DST_PRED = "/scratch2/wenlongzhao/roostui/data" # bounding boxes and counts
 DST_ARRAY = "/scratch2/wenlongzhao/RadarNPZ/v0.3.0/" # arrays
 DST_OTHERS = "/scratch2/wenlongzhao/roosts_deployment_outputs" # logs, scans
-
-# TODO: Remove previous outputs
 
 try:
     assert STATIONS_TIMES
