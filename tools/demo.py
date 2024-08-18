@@ -76,11 +76,11 @@ if "us_sunrise_v3" in args.dataset:  # Entire US birds
         "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
         "rcs":              1,      # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
                                     # once considered setting get_bird_rcs(54)
-        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+        "xcorr_threshold":  [       # dual-pol cross correlation threshold
             np.nan,                 # no dual-pol cross correlation filtering
             0.95
         ],
-        "threshold_linZ":   {
+        "linZ_threshold":   {
             40: 216309,             # 40dBZ -> 216309 in the linear scale
         }                           # linear scale threshold above which we consider reflectivity to be too high,
                                     # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
@@ -90,10 +90,10 @@ elif args.species == "swallow" and args.model_version == "v2":  # Great Lakes bi
         "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
         "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
         "rcs":              get_bird_rcs(54),
-        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+        "xcorr_threshold":  [       # dual-pol cross correlation threshold
             np.nan,                 # no dual-pol cross correlation filtering
         ],
-        "threshold_linZ":   {
+        "linZ_threshold":   {
             30: 21630,              # 30dBZ
         }
     }
@@ -102,10 +102,10 @@ elif args.species == "bat" and args.model_version == "v3":  # Texas bats deploym
         "count_scaling":    1.2,
         "max_height":       5000,
         "rcs":              4.519,
-        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+        "xcorr_threshold":  [       # dual-pol cross correlation threshold
             0.95
         ],
-        "threshold_linZ": {
+        "linZ_threshold": {
             60: 21630891,           # 60dBZ
             40: 216309,             # 40dBZ
         }

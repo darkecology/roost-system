@@ -117,14 +117,14 @@ class RoostSystem:
                     f'det_score,x,y,r,lon,lat,radius,geo_dist,local_time,n_radar_pixels'
                 )
                 # scan-wise number of bad pixels according to the LOWEST sweep
-                for xcorr_threshold in self.count_cfg["threshold_xcorr"]:
-                    for ref_threshold in self.count_cfg["threshold_linZ"].keys():
+                for xcorr_threshold in self.count_cfg["xcorr_threshold"]:
+                    for linZ_threshold in self.count_cfg["linZ_threshold"].keys():
                         if xcorr_threshold is np.nan:
-                            f.write(f',n_refAbove{ref_threshold}_pixels')
+                            f.write(f',n_refAbove{linZ_threshold}_pixels')
                         else:
                             f.write(
                                 f',n_xcorrAbove{xcorr_threshold}_pixels'
-                                f',n_xcorrBelow{xcorr_threshold}_refAbove{ref_threshold}_pixels'
+                                f',n_xcorrBelow{xcorr_threshold}_refAbove{linZ_threshold}_pixels'
                             )
                 # TODO: aggregate the number of animals over sweeps, boxes, tracks
                 f.write('\n')
@@ -134,18 +134,18 @@ class RoostSystem:
                 f.write(
                     'track_id,filename,sweep_idx,sweep_angle,count_scaling,n_roost_pixels'
                 )
-                for xcorr_threshold in self.count_cfg["threshold_xcorr"]:
-                    for ref_threshold in self.count_cfg["threshold_linZ"].keys():
+                for xcorr_threshold in self.count_cfg["xcorr_threshold"]:
+                    for linZ_threshold in self.count_cfg["linZ_threshold"].keys():
                         if xcorr_threshold is np.nan:
                             f.write(
-                                f',n_refAbove{ref_threshold}_pixels'
-                                f',n_refBelow{ref_threshold}_animals'
+                                f',n_refAbove{linZ_threshold}_pixels'
+                                f',n_refBelow{linZ_threshold}_animals'
                             )
                         else:
                             f.write(
                                 f',n_xcorrAbove{xcorr_threshold}_pixels'
-                                f',n_xcorrBelow{xcorr_threshold}_refAbove{ref_threshold}_pixels'
-                                f',n_xcorrBelow{xcorr_threshold}_refBelow{ref_threshold}_animals'
+                                f',n_xcorrBelow{xcorr_threshold}_refAbove{linZ_threshold}_pixels'
+                                f',n_xcorrBelow{xcorr_threshold}_refBelow{linZ_threshold}_animals'
                             )
                 f.write('\n')
 

@@ -20,8 +20,8 @@ COUNT_CONFIG = {
     "count_scaling": 1.2, # the detector model predicts boxes that "trace roosts", enlarge to get a bounding box
     "max_height": 5000,  # 5000m: this is and should be much higher than roosts' normal height (~2000m)
     "rcs": 4.519,
-    "threshold_corr": 0.95,
-    "threshold_linZ": {
+    "xcorr_threshold": 0.95,
+    "linZ_threshold": {
         60: 21630891,   # 60dBZ
         40: 216309,     # 40dBZ
     },
@@ -32,10 +32,10 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 f_sweeps = open(os.path.join(OUTPUT_DIR, f"sweeps{COUNT_IDX}{args.file[6:]}"), "w")
 title = 'track_id,filename,sweep_idx,sweep_angle,count_scaling,' \
         'n_roost_pixels,n_weather_pixels'
-for threshold in COUNT_CONFIG["threshold_linZ"].keys():
+for threshold in COUNT_CONFIG["linZ_threshold"].keys():
     title += f',n_highZ_pixels_{threshold}'
 title += f',n_animals'
-for threshold in COUNT_CONFIG["threshold_linZ"].keys():
+for threshold in COUNT_CONFIG["linZ_threshold"].keys():
     title += f',n_animals_{threshold}'
 title += '\n'
 f_sweeps.write(title)
@@ -78,8 +78,8 @@ for i in range(1, len(lines)):
                 f"{sweep_angle:.3f}",
                 f"{COUNT_CONFIG['count_scaling']:.3f}",
             ]
-            n_highZ_pixels_by_linZ_filter = {dBZ: None for dBZ in COUNT_CONFIG["threshold_linZ"].keys()}
-            n_animals_by_linZ_filter = {dBZ: None for dBZ in COUNT_CONFIG["threshold_linZ"].keys()}
+            n_highZ_pixels_by_linZ_filter = {dBZ: None for dBZ in COUNT_CONFIG["linZ_threshold"].keys()}
+            n_animals_by_linZ_filter = {dBZ: None for dBZ in COUNT_CONFIG["linZ_threshold"].keys()}
 
             # count animals without dBZ filtering
             n_roost_pixels, n_weather_pixels, _, n_animals_no_linZ_filter = calc_n_animals(
@@ -87,25 +87,25 @@ for i in range(1, len(lines)):
                 sweep_index,
                 xyr,
                 COUNT_CONFIG["rcs"],
-                threshold_corr=COUNT_CONFIG["threshold_corr"],
+                xcorr_threshold=COUNT_CONFIG["xcorr_threshold"],
             )
             output += [f"{n_roost_pixels}", f"{n_weather_pixels}"]
 
             # count animals with dBZ filtering
-            for i, (dBZ, linZ) in enumerate(COUNT_CONFIG["threshold_linZ"].items()):
+            for i, (dBZ, linZ) in enumerate(COUNT_CONFIG["linZ_threshold"].items()):
                 _, _, n_highZ_pixels_by_linZ_filter[dBZ], n_animals_by_linZ_filter[dBZ] = calc_n_animals(
                     radar,
                     sweep_index,
                     xyr,
                     COUNT_CONFIG["rcs"],
-                    threshold_corr=COUNT_CONFIG["threshold_corr"],
-                    threshold_linZ=linZ,
+                    xcorr_threshold=COUNT_CONFIG["xcorr_threshold"],
+                    linZ_threshold=linZ,
                 )
 
             # output
-            output += [f"{n_highZ_pixels_by_linZ_filter[dBZ]}" for dBZ in COUNT_CONFIG["threshold_linZ"].keys()]
+            output += [f"{n_highZ_pixels_by_linZ_filter[dBZ]}" for dBZ in COUNT_CONFIG["linZ_threshold"].keys()]
             output += [f"{n_animals_no_linZ_filter:.3f}"]
-            output += [f"{n_animals_by_linZ_filter[dBZ]:.3f}" for dBZ in COUNT_CONFIG["threshold_linZ"].keys()]
+            output += [f"{n_animals_by_linZ_filter[dBZ]:.3f}" for dBZ in COUNT_CONFIG["linZ_threshold"].keys()]
             f_sweeps.write(",".join(output) + "\n")
 
         except Exception as error:

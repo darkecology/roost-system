@@ -1,5 +1,6 @@
 # Manual Additions
 data
+scratch
 tools/post_hoc_counting/count_texas_bats_v3/texas_bats_v3*
 tools/post_hoc_counting/unused_count_texas_bats_v3_screened/texas_bats_v3_screened*
 tools/post_hoc_counting/unused_count_texas_bats_v3_long/texas_bats_v3_long*

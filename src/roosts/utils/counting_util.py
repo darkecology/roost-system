@@ -169,8 +169,8 @@ def calc_n_animals(
     sweep_index,
     detection_coordinates,
     rcs,
-    threshold_xcorr=np.nan,  # dualpol cross-correlation filtering
-    threshold_linZ=np.nan,  # reflectivity filtering
+    xcorr_threshold=np.nan,  # dualpol cross-correlation filtering
+    linZ_threshold=np.nan,  # reflectivity filtering
 ):
     '''
     Calculates the number of animals within a bounding box defined by detection_coordinates, in a scan loaded as a
@@ -186,10 +186,10 @@ def calc_n_animals(
         a tuple containing the (x, y) coordinates of the roost and the roost radius in meters
     rcs: float
         radar cross section of target species
-    threshold_xcorr: float (from 0 to 1)
+    xcorr_threshold: float (from 0 to 1)
         pixels with cross correlation ratio above this value will be set to 0 and considered as rain.
         If NaN, no filtering is applied.
-    threshold_linZ: float
+    linZ_threshold: float
         over this value given in linear scale, reflectivity will be set to zero.
         If NaN, no filtering is applied.
 
@@ -197,10 +197,10 @@ def calc_n_animals(
     -------
     n_roost_pixels: int
         number of radar product pixels of the bounding box
-    n_xcorrAboveC_pixels: int or "" if threshold_xcorr is np.nan
-        number of pixels where cross correlation ratio was above threshold_xcorr in the bounding box
-    n_xcorrBelowC_refAboveD_pixels: int or "" if threshold_linZ is np.nan
-        number of pixels where reflectivity is above the threshold_linZ in the bounding box
+    n_xcorrAboveC_pixels: int or "" if xcorr_threshold is np.nan
+        number of pixels where cross correlation ratio was above xcorr_threshold in the bounding box
+    n_xcorrBelowC_refAboveD_pixels: int or "" if linZ_threshold is np.nan
+        number of pixels where reflectivity is above the linZ_threshold in the bounding box
     n_xcorrBelowC_refBelowD_animals: float
         number of animals calculated by chosen method
     '''
@@ -219,6 +219,8 @@ def calc_n_animals(
     sweep = radar.get_field(sweep=sweep_index, field_name="reflectivity")
 
     # If the pixel is NaN, we will set it to the least possible value in dBZ scale:
+    # TODO: this will cause many nan pixels to be considered high xcorr pixels
+    # TODO: implement a NAN mask
     sweep = sweep.filled(-33)
 
     # Convert dBZ to m^2/km^3:
@@ -260,25 +262,25 @@ def calc_n_animals(
 
     # Apply mask to sweep matrix, 0 if outside bounding box:
     masked = sweep * bb_mask
+    # masked should not have negative values, but adding this to set negatives to 0 just in case
+    masked = masked * (masked >= 0)
 
     # Get the total number of pixels in the roost bounding box:
-    n_roost_pixels = sum(sum(masked > 0))
+    n_roost_pixels = sum(sum(masked > 0))  # masked cannot be negative
 
     # If there is dualpol data in scan AND user requested dual pol filtering, apply filter:
-    if "cross_correlation_ratio" in radar.fields and not np.isnan(threshold_xcorr):
+    if "cross_correlation_ratio" in radar.fields and not np.isnan(xcorr_threshold):
         # Retrieve cross correlation ratio and create mask:
         cross_correlation = radar.get_field(sweep=sweep_index, field_name="cross_correlation_ratio")
-
-        # If the pixel is nan, set it to a value that will be removed by the filter:
-        cross_correlation = cross_correlation.filled(1)
+        cross_correlation = cross_correlation.filled(0)
+        # 1 to keep a pixel if it has no or low xcorr
         correlation_mask = np.zeros(cross_correlation.shape)
-        correlation_mask[cross_correlation < threshold_xcorr] = 1
+        correlation_mask[cross_correlation < xcorr_threshold] = 1
 
-        # Mask out pixels outside of the bounding box
-        # Among all the pixels in a sweep, how many should be kept
-        correlation_mask = correlation_mask * bb_mask
+        # 1 if a pixel has no or low xcorr and is inside the bounding box
+        correlation_mask = correlation_mask * bb_mask * (masked >= 0)
 
-        # Count number of weather pixels:
+        # Pixels within the bounding box that have low cross correlation
         n_xcorrAboveC_pixels = n_roost_pixels - sum(sum(correlation_mask == 1))
 
         # Apply cross correlation mask to sweep:
@@ -286,10 +288,10 @@ def calc_n_animals(
     else:
         n_xcorrAboveC_pixels = ""
 
-    # If threshold_linZ is not empty, use it to filter:
-    if not np.isnan(threshold_linZ):
-        n_xcorrBelowC_refAboveD_pixels = sum(sum(masked > threshold_linZ))
-        masked[masked > threshold_linZ] = 0
+    # If linZ_threshold is not empty, use it to filter:
+    if not np.isnan(linZ_threshold):
+        n_xcorrBelowC_refAboveD_pixels = sum(sum(masked > linZ_threshold))
+        masked[masked > linZ_threshold] = 0
     else:
         n_xcorrBelowC_refAboveD_pixels = ""
 

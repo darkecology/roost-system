@@ -348,13 +348,13 @@ class Visualizer:
 
                         # count scan-wise bad pixels according to the lowest sweep
                         # do not need to re-count at each bounding box, but so be it since counting is not slow
-                        _, sweep_angle = sweep_indexes_and_angles[0]
+                        sweep_index, sweep_angle = sweep_indexes_and_angles[0]
                         _, height = slant2ground(det["geo_dist"], sweep_angle)
                         assert height <= count_cfg["max_height"]
 
                         scan_wise_bad_pixel_counts = [""]
-                        for xcorr_threshold in count_cfg["threshold_xcorr"]:
-                            for ref_threshold in count_cfg["threshold_linZ"].keys():
+                        for xcorr_threshold in count_cfg["xcorr_threshold"]:
+                            for linZ_threshold in count_cfg["linZ_threshold"].keys():
                                 (
                                     n_radar_pixels,
                                     n_xcorrAboveC_pixels,
@@ -365,8 +365,8 @@ class Visualizer:
                                     sweep_index,
                                     (0, 0, geosize / 2),  # the entire rendered region
                                     count_cfg["rcs"],
-                                    threshold_xcorr=xcorr_threshold,
-                                    threshold_linZ=ref_threshold
+                                    xcorr_threshold=xcorr_threshold,
+                                    linZ_threshold=linZ_threshold
                                 )
 
                                 if scan_wise_bad_pixel_counts[0] == "":
@@ -384,8 +384,8 @@ class Visualizer:
                         f.write(",".join(scan_wise_bad_pixel_counts) + "\n")
                     except:
                         scan_wise_bad_pixel_counts = [""]
-                        for xcorr_threshold in count_cfg["threshold_xcorr"]:
-                            for ref_threshold in count_cfg["threshold_linZ"].keys():
+                        for xcorr_threshold in count_cfg["xcorr_threshold"]:
+                            for linZ_threshold in count_cfg["linZ_threshold"].keys():
                                 if xcorr_threshold is np.nan:
                                     scan_wise_bad_pixel_counts += [""]
                                 else:
@@ -407,7 +407,7 @@ class Visualizer:
                                     # This sweep file is not processed by the UI
                                     # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
                                     # YYYYMMDD: local date
-                                    f"{filename[:4]}{local_time[:8]}-{det['track_ID']:d}",
+                                    f"{det['scanname'][:4]}{local_time[:8]}-{det['track_ID']:d}",
 
                                     det["scanname"],
                                     f"{sweep_index}",
@@ -416,8 +416,8 @@ class Visualizer:
                                 ]
 
                                 pixel_and_animal_counts = [""]
-                                for xcorr_threshold in count_cfg["threshold_xcorr"]:
-                                    for ref_threshold in count_cfg["threshold_linZ"].keys():
+                                for xcorr_threshold in count_cfg["xcorr_threshold"]:
+                                    for linZ_threshold in count_cfg["linZ_threshold"].keys():
                                         (
                                             n_roost_pixels,
                                             n_xcorrAboveC_pixels,
@@ -428,8 +428,8 @@ class Visualizer:
                                             sweep_index,
                                             xyr,
                                             count_cfg["rcs"],
-                                            threshold_xcorr=xcorr_threshold,
-                                            threshold_linZ=ref_threshold
+                                            xcorr_threshold=xcorr_threshold,
+                                            linZ_threshold=linZ_threshold
                                         )
 
                                         if pixel_and_animal_counts[0] == "":
@@ -438,13 +438,13 @@ class Visualizer:
                                         if xcorr_threshold is np.nan:
                                             pixel_and_animal_counts += [
                                                 f"{n_xcorrBelowC_refAboveD_pixels}",
-                                                f"{n_xcorrBelowC_refBelowD_animals}"
+                                                f"{n_xcorrBelowC_refBelowD_animals:.3f}"
                                             ]
                                         else:
                                             pixel_and_animal_counts += [
                                                 f"{n_xcorrAboveC_pixels}",
                                                 f"{n_xcorrBelowC_refAboveD_pixels}",
-                                                f"{n_xcorrBelowC_refBelowD_animals}"
+                                                f"{n_xcorrBelowC_refBelowD_animals:.3f}"
                                             ]
                                 ff.write(",".join(output + pixel_and_animal_counts) + "\n")
 
