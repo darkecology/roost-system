@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import matplotlib as mpl
 import matplotlib.figure as mplfigure
 import matplotlib.pyplot as plt
@@ -25,14 +26,16 @@ class Visualizer:
         assert sun_activity in ["sunrise", "sunset"]
         self.sun_activity = sun_activity
 
-    def draw_detections(self,
-                        image_paths, 
-                        detections, 
-                        outdir, 
-                        score_thresh=0.005, 
-                        save_gif=True,
-                        vis_track=False,
-                        vis_track_after_NMS=True):
+    def draw_detections(
+        self,
+        image_paths,
+        detections,
+        outdir,
+        score_thresh=0.005,
+        save_gif=True,
+        vis_track=False,
+        vis_track_after_NMS=True
+    ):
         """ 
             Draws detections on the images
         
@@ -77,10 +80,12 @@ class Visualizer:
         return True
 
 
-    def draw_dets_multi_thresh(self,
-                        image_paths, 
-                        detections, 
-                        outdir,):
+    def draw_dets_multi_thresh(
+        self,
+        image_paths,
+        detections,
+        outdir
+    ):
         """ 
             Draws detections on the images under different score thresholds
         
@@ -131,14 +136,16 @@ class Visualizer:
         return gif_path
         
 
-    def draw_tracks_multi_thresh(self,
-                        image_paths, 
-                        detections, 
-                        tracks,
-                        outdir,
-                        vis_track_after_NMS=True, 
-                        vis_track_after_merge=True,
-                        ignore_rain=True):
+    def draw_tracks_multi_thresh(
+        self,
+        image_paths,
+        detections,
+        tracks,
+        outdir,
+        vis_track_after_NMS=True,
+        vis_track_after_merge=True,
+        ignore_rain=True
+    ):
         """ 
             Draws tracks on the images under different threholds
         
@@ -295,8 +302,8 @@ class Visualizer:
                         last_pred_idx = idx
                         break
 
-                # do not report the tail of tracks
                 for idx, det_ID in enumerate(track["det_IDs"]):
+                    # do not report the tail of tracks
                     if idx > last_pred_idx:
                         break
 
@@ -311,6 +318,7 @@ class Visualizer:
                     det["geo_dist"] = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
 
                     local_time = scan_key_to_local_time(det["scanname"])
+
                     f.write(
                         ",".join([
                             # UI will convert this track index i into SSSSYYYYMMDD-i
@@ -327,26 +335,74 @@ class Visualizer:
                             f"{det['geo_dist']:.3f}",
 
                             local_time,
-                        ]) + "\n"
+                        ]) + ","
+                    )  # will add more fields below
+
+                    # Now look into sweeps
+                    radar = pyart.io.read_nexrad_archive(
+                        os.path.join(scan_dir, scanname2key[det["scanname"]])
                     )
+                    try:
+                        sweep_indexes, sweep_angles = get_unique_sweeps(radar)
+                        sweep_indexes_and_angles = sorted(zip(sweep_indexes, sweep_angles), key=lambda x: x[1])
 
-                    # count the number of animals in each sweep
+                        # count scan-wise bad pixels according to the lowest sweep
+                        # do not need to re-count at each bounding box, but so be it since counting is not slow
+                        _, sweep_angle = sweep_indexes_and_angles[0]
+                        _, height = slant2ground(det["geo_dist"], sweep_angle)
+                        assert height <= count_cfg["max_height"]
+
+                        scan_wise_bad_pixel_counts = [""]
+                        for xcorr_threshold in count_cfg["threshold_xcorr"]:
+                            for ref_threshold in count_cfg["threshold_linZ"].keys():
+                                (
+                                    n_radar_pixels,
+                                    n_xcorrAboveC_pixels,
+                                    n_xcorrBelowC_refAboveD_pixels,
+                                    _
+                                ) = calc_n_animals(
+                                    radar,
+                                    sweep_index,
+                                    (0, 0, geosize / 2),  # the entire rendered region
+                                    count_cfg["rcs"],
+                                    threshold_xcorr=xcorr_threshold,
+                                    threshold_linZ=ref_threshold
+                                )
+
+                                if scan_wise_bad_pixel_counts[0] == "":
+                                    scan_wise_bad_pixel_counts[0] = f"{n_radar_pixels}"
+
+                                if xcorr_threshold is np.nan:
+                                    scan_wise_bad_pixel_counts += [
+                                        f"{n_xcorrBelowC_refAboveD_pixels}",
+                                    ]
+                                else:
+                                    scan_wise_bad_pixel_counts += [
+                                        f"{n_xcorrAboveC_pixels}",
+                                        f"{n_xcorrBelowC_refAboveD_pixels}",
+                                    ]
+                        f.write(",".join(scan_wise_bad_pixel_counts) + "\n")
+                    except:
+                        scan_wise_bad_pixel_counts = [""]
+                        for xcorr_threshold in count_cfg["threshold_xcorr"]:
+                            for ref_threshold in count_cfg["threshold_linZ"].keys():
+                                if xcorr_threshold is np.nan:
+                                    scan_wise_bad_pixel_counts += [""]
+                                else:
+                                    scan_wise_bad_pixel_counts += ["", ""]
+                        f.write(",".join(scan_wise_bad_pixel_counts) + "\n")
+                        continue  # next bounding box
+
+                    # loop over sweeps and count the number of animals in each sweep
+                    # adapted from code by Maria C. T. D. Belotti
                     with open(sweeps_path, 'a+') as ff:
-                        # loop over sweeps, credit to Maria C. T. D. Belotti
-                        radar = pyart.io.read_nexrad_archive(
-                            os.path.join(scan_dir, scanname2key[det["scanname"]])
-                        )
-                        try:
-                            sweep_indexes, sweep_angles = get_unique_sweeps(radar)
-                        except:
-                            continue
-
-                        for sweep_index, sweep_angle in sorted(zip(sweep_indexes, sweep_angles), key=lambda x: x[1]):
+                        for sweep_index, sweep_angle in sweep_indexes_and_angles:
                             try:
                                 _, height = slant2ground(det["geo_dist"], sweep_angle)
                                 if height > count_cfg["max_height"]:
-                                    break
+                                    break  # exhausted all sweeps within the height threshold, next bounding box
 
+                                # for this sweep
                                 output = [
                                     # This sweep file is not processed by the UI
                                     # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
@@ -358,45 +414,39 @@ class Visualizer:
                                     f"{sweep_angle:.3f}",
                                     f"{count_cfg['count_scaling']:.3f}",
                                 ]
-                                n_highZ_pixels_by_linZ_filter = {
-                                    dBZ: None for dBZ in count_cfg["threshold_linZ"].keys()
-                                }
-                                n_animals_by_linZ_filter = {dBZ: None for dBZ in count_cfg["threshold_linZ"].keys()}
 
-                                # count animals without dBZ filtering
-                                n_roost_pixels, n_weather_pixels, _, n_animals_no_linZ_filter = calc_n_animals(
-                                    radar,
-                                    sweep_index,
-                                    xyr,
-                                    count_cfg["rcs"],
-                                    threshold_corr=count_cfg["threshold_corr"],
-                                )
-                                output += [f"{n_roost_pixels}", f"{n_weather_pixels}"]
+                                pixel_and_animal_counts = [""]
+                                for xcorr_threshold in count_cfg["threshold_xcorr"]:
+                                    for ref_threshold in count_cfg["threshold_linZ"].keys():
+                                        (
+                                            n_roost_pixels,
+                                            n_xcorrAboveC_pixels,
+                                            n_xcorrBelowC_refAboveD_pixels,
+                                            n_xcorrBelowC_refBelowD_animals
+                                        ) = calc_n_animals(
+                                            radar,
+                                            sweep_index,
+                                            xyr,
+                                            count_cfg["rcs"],
+                                            threshold_xcorr=xcorr_threshold,
+                                            threshold_linZ=ref_threshold
+                                        )
 
-                                # count animals with dBZ filtering
-                                for i, (dBZ, linZ) in enumerate(count_cfg["threshold_linZ"].items()):
-                                    (
-                                        _, _, n_highZ_pixels_by_linZ_filter[dBZ], n_animals_by_linZ_filter[dBZ]
-                                    )= calc_n_animals(
-                                        radar,
-                                        sweep_index,
-                                        xyr,
-                                        count_cfg["rcs"],
-                                        threshold_corr=count_cfg["threshold_corr"],
-                                        threshold_linZ=linZ,
-                                    )
+                                        if pixel_and_animal_counts[0] == "":
+                                            pixel_and_animal_counts[0] = f"{n_roost_pixels}"
 
-                                # output
-                                output += [
-                                    f"{n_highZ_pixels_by_linZ_filter[dBZ]}"
-                                    for dBZ in count_cfg["threshold_linZ"].keys()
-                                ]
-                                output += [f"{n_animals_no_linZ_filter:.3f}"]
-                                output += [
-                                    f"{n_animals_by_linZ_filter[dBZ]:.3f}"
-                                    for dBZ in count_cfg["threshold_linZ"].keys()
-                                ]
-                                ff.write(",".join(output) + "\n")
+                                        if xcorr_threshold is np.nan:
+                                            pixel_and_animal_counts += [
+                                                f"{n_xcorrBelowC_refAboveD_pixels}",
+                                                f"{n_xcorrBelowC_refBelowD_animals}"
+                                            ]
+                                        else:
+                                            pixel_and_animal_counts += [
+                                                f"{n_xcorrAboveC_pixels}",
+                                                f"{n_xcorrBelowC_refAboveD_pixels}",
+                                                f"{n_xcorrBelowC_refBelowD_animals}"
+                                            ]
+                                ff.write(",".join(output + pixel_and_animal_counts) + "\n")
 
                             except:
-                                continue
+                                continue  # next sweep

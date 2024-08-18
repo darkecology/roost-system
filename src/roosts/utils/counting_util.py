@@ -14,7 +14,13 @@ from wsrlib import *
 
 def xyr2geo(x, y, r, dim=600, rmax=150000, k=1.0):
     '''
-    Convert from image coordinates to geometric offset from radar
+    Convert from
+        image coordinates in pixels,
+        where xy are the center, x axis starts with West, y axis starts with North
+    to
+        geometric distance in meters from radar, where
+        a positive x means East,
+        a positive y means North
     '''
 
     x, y, r = float(x), float(y), float(r)
@@ -22,7 +28,7 @@ def xyr2geo(x, y, r, dim=600, rmax=150000, k=1.0):
     x0 = y0 = dim / 2.0  # origin
     x =  (x - x0) * 2 * rmax / dim
     y = -(y - y0) * 2 * rmax / dim
-    r = r * k * 2 * rmax / dim  # TODO: scaling by k may cause the r to be larger than the scope
+    r = r * k * 2 * rmax / dim  # Note: scaling by k may cause the r to be larger than the scope
 
     return (x, y, r)
 
@@ -163,7 +169,7 @@ def calc_n_animals(
     sweep_index,
     detection_coordinates,
     rcs,
-    threshold_corr=np.nan,  # dualpol cross-correlation filtering
+    threshold_xcorr=np.nan,  # dualpol cross-correlation filtering
     threshold_linZ=np.nan,  # reflectivity filtering
 ):
     '''
@@ -180,7 +186,7 @@ def calc_n_animals(
         a tuple containing the (x, y) coordinates of the roost and the roost radius in meters
     rcs: float
         radar cross section of target species
-    threshold_corr: float (from 0 to 1)
+    threshold_xcorr: float (from 0 to 1)
         pixels with cross correlation ratio above this value will be set to 0 and considered as rain.
         If NaN, no filtering is applied.
     threshold_linZ: float
@@ -191,11 +197,11 @@ def calc_n_animals(
     -------
     n_roost_pixels: int
         number of radar product pixels of the bounding box
-    n_weather_pixels: int
-        number of pixels where cross correlation ratio was above threshold_corr in the bounding box
-    n_highZ_pixels: int
+    n_xcorrAboveC_pixels: int or "" if threshold_xcorr is np.nan
+        number of pixels where cross correlation ratio was above threshold_xcorr in the bounding box
+    n_xcorrBelowC_refAboveD_pixels: int or "" if threshold_linZ is np.nan
         number of pixels where reflectivity is above the threshold_linZ in the bounding box
-    n_animals: float
+    n_xcorrBelowC_refBelowD_animals: float
         number of animals calculated by chosen method
     '''
 
@@ -259,87 +265,43 @@ def calc_n_animals(
     n_roost_pixels = sum(sum(masked > 0))
 
     # If there is dualpol data in scan AND user requested dual pol filtering, apply filter:
-    if "cross_correlation_ratio" in radar.fields and not np.isnan(threshold_corr):
+    if "cross_correlation_ratio" in radar.fields and not np.isnan(threshold_xcorr):
         # Retrieve cross correlation ratio and create mask:
         cross_correlation = radar.get_field(sweep=sweep_index, field_name="cross_correlation_ratio")
 
         # If the pixel is nan, set it to a value that will be removed by the filter:
         cross_correlation = cross_correlation.filled(1)
         correlation_mask = np.zeros(cross_correlation.shape)
-        correlation_mask[cross_correlation < threshold_corr] = 1
+        correlation_mask[cross_correlation < threshold_xcorr] = 1
 
         # Mask out pixels outside of the bounding box
         # Among all the pixels in a sweep, how many should be kept
         correlation_mask = correlation_mask * bb_mask
 
         # Count number of weather pixels:
-        n_weather_pixels = n_roost_pixels - sum(sum(correlation_mask == 1))
+        n_xcorrAboveC_pixels = n_roost_pixels - sum(sum(correlation_mask == 1))
 
         # Apply cross correlation mask to sweep:
         masked = masked * correlation_mask
     else:
-        n_weather_pixels = np.nan
+        n_xcorrAboveC_pixels = ""
 
     # If threshold_linZ is not empty, use it to filter:
     if not np.isnan(threshold_linZ):
-        n_highZ_pixels = sum(sum(masked > threshold_linZ))
+        n_xcorrBelowC_refAboveD_pixels = sum(sum(masked > threshold_linZ))
         masked[masked > threshold_linZ] = 0
     else:
-        n_highZ_pixels = np.nan
+        n_xcorrBelowC_refAboveD_pixels = ""
 
     # Create an intermediate array where each cell is a multiplication of reflectivity and volume:
     # This 2-D array will have the same dimensions as the raw radar data:
     roost_matrix = masked * volume_range / rcs
-    n_animals = sum(sum(roost_matrix))
+    n_xcorrBelowC_refBelowD_animals = sum(sum(roost_matrix))
 
-    return n_roost_pixels, n_weather_pixels, n_highZ_pixels, n_animals
+    return (
+        n_roost_pixels,
+        n_xcorrAboveC_pixels,
+        n_xcorrBelowC_refAboveD_pixels,
+        n_xcorrBelowC_refBelowD_animals
+    )
 
-
-def get_n_pixels(radar, sweep_index, threshold, product, direction):
-    '''
-    This will calculate the number of pixels above or below a certain threshold in a
-    given radar product and sweep. Possible radar products for NEXRAD are
-    'reflectivity', 'velocity', and 'spectrum_width', for all scans and
-    'differential_reflectivity', 'cross_correlation_ratio', 'differential_phase',
-    for scans made after 2013.
-
-    Input:
-    ------------
-    radar: a pyart radar object
-
-    sweep_index: int
-        The index of the desired sweep, starting from 0. Remember that polarimetric
-        variables are not available for all scans within a sweep
-
-    threshold: float
-        Threshold above or below which to count pixels on
-
-    product: str
-        A string with the name of the desired radar product available in the radar file
-
-    direction: str
-        Either "above" or "below" depending on whether you want to count number of pixels
-        above or below threshold.
-
-    Output:
-    -------------
-    (n_pixels, n_bad_pixels): total number of pixels and number of bad pixels within sweep
-
-    '''
-
-    sweep = radar.get_field(sweep=sweep_index, field_name=product)
-    sweep = sweep.filled(np.nan)
-
-    if direction == "above":
-        n_bad_pixels = sum(sum(sweep > threshold))
-
-    elif direction == "below":
-        n_bad_pixels = sum(sum(sweep < threshold))
-
-    else:
-        print("Didn't understand which direction you need.")
-        n_bad_pixels = np.nan
-
-    n_pixels = sweep.shape[0] * sweep.shape[1]
-
-    return n_pixels, n_bad_pixels

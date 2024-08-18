@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 import time
+import numpy as np
 from roosts.data.downloader import Downloader
 from roosts.data.renderer import Renderer
 from roosts.detection.detector import Detector
@@ -103,30 +104,50 @@ class RoostSystem:
             with open(scans_path, "w") as f:
                 f.write("filename,local_time\n")
 
+        with open(scans_path, "a+") as f:
+            f.writelines([
+                f"{scan_name},{scan_key_to_local_time(scan_name)}\n"
+                for scan_name in scan_names
+            ])
+
         if not os.path.exists(tracks_path):
             with open(tracks_path, 'w') as f:
                 f.write(
                     f'track_id,filename,from_{self.args.sun_activity},'
-                    f'det_score,x,y,r,lon,lat,radius,geo_dist,'
-                    f'local_time\n'
+                    f'det_score,x,y,r,lon,lat,radius,geo_dist,local_time,n_radar_pixels'
                 )
+                # scan-wise number of bad pixels according to the LOWEST sweep
+                for xcorr_threshold in self.count_cfg["threshold_xcorr"]:
+                    for ref_threshold in self.count_cfg["threshold_linZ"].keys():
+                        if xcorr_threshold is np.nan:
+                            f.write(f',n_refAbove{ref_threshold}_pixels')
+                        else:
+                            f.write(
+                                f',n_xcorrAbove{xcorr_threshold}_pixels'
+                                f',n_xcorrBelow{xcorr_threshold}_refAbove{ref_threshold}_pixels'
+                            )
+                # TODO: aggregate the number of animals over sweeps, boxes, tracks
+                f.write('\n')
 
         if not os.path.exists(sweeps_path):
             with open(sweeps_path, 'w') as f:
-                title = 'track_id,filename,sweep_idx,sweep_angle,count_scaling,' \
-                        'n_roost_pixels,n_weather_pixels'
-                # counting animals in filtered pixels
-                # e.g., n_highZ_pixels_60,n_highZ_pixels_40,n_animals,n_animals_60,n_animals_40
-                for threshold in self.count_cfg["threshold_linZ"].keys():
-                    title += f',n_highZ_pixels_{threshold}'
-                title += f',n_animals'
-                for threshold in self.count_cfg["threshold_linZ"].keys():
-                    title += f',n_animals_{threshold}'
-                title += '\n'
-                f.write(title)
-
-        with open(scans_path, "a+") as f:
-            f.writelines([f"{scan_name},{scan_key_to_local_time(scan_name)}\n" for scan_name in scan_names])
+                f.write(
+                    'track_id,filename,sweep_idx,sweep_angle,count_scaling,n_roost_pixels'
+                )
+                for xcorr_threshold in self.count_cfg["threshold_xcorr"]:
+                    for ref_threshold in self.count_cfg["threshold_linZ"].keys():
+                        if xcorr_threshold is np.nan:
+                            f.write(
+                                f',n_refAbove{ref_threshold}_pixels'
+                                f',n_refBelow{ref_threshold}_animals'
+                            )
+                        else:
+                            f.write(
+                                f',n_xcorrAbove{xcorr_threshold}_pixels'
+                                f',n_xcorrBelow{xcorr_threshold}_refAbove{ref_threshold}_pixels'
+                                f',n_xcorrBelow{xcorr_threshold}_refBelow{ref_threshold}_animals'
+                            )
+                f.write('\n')
 
         ######################### (3) Run detection models on the data #########################
         detections = self.detector.run(npz_files)

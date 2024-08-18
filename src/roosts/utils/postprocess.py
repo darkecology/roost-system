@@ -189,7 +189,7 @@ class Postprocess():
                     dualpol = radar_data["dualpol_array"]
                     dualpol = dualpol[1, 0, ::-1, :]
                             # use correlation coefficient at the lowest elevation
-                            # flip the y axis, from geographical (big y means North) to image (big y means lower)
+                            # flip the y axis, from geographical (y axis starts with North) to image (big y means lower)
                 else:
                     dualpol = None
                 dualpol_data[scanname] = dualpol

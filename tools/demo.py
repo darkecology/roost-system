@@ -23,8 +23,13 @@ parser.add_argument('--min_after', type=int, default=90,
                     help="process scans at most these minutes after the selected sun activity")
 parser.add_argument('--data_root', type=str, help="directory for all outputs",
                     default=f"{here}/../roosts_data")
-parser.add_argument('--just_render', action='store_true', help="just download and render, no detection and tracking")
 parser.add_argument('--model_version', type=str, default="v3")
+parser.add_argument(
+    '--dataset', type=str, required=True,
+    help="Name of the dataset to produce, e.g., us_sunrise_v3. Used to decide the counting config."
+)
+
+parser.add_argument('--just_render', action='store_true', help="just download and render, no detection and tracking")
 parser.add_argument('--gif_vis', action='store_true', help="generate gif visualization")
 parser.add_argument('--aws_access_key_id', type=str, default=None)
 parser.add_argument('--aws_secret_access_key', type=str, default=None)
@@ -64,35 +69,42 @@ PP_CFG = {
 }
 
 # counting config
-if args.species == "swallow" and args.model_version == "v2":  # Great Lakes birds
+if "us_sunrise_v3" in args.dataset:  # Entire US birds
     CNT_CFG = {
-        "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
-        "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
-        "rcs":              get_bird_rcs(54),
-        "threshold_corr":   np.nan, # np.nan if we don't want to use a dual-pol cross correlation threshold
-        "threshold_linZ":   {
-            30: 21630,              # 30dBZ
-        }                           # linear scale threshold above which we consider reflectivity to be too high,
-                                    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
-                                    # empty dict if we don't want to use a reflectivity threshold
-    }
-elif args.species == "swallow":  # Entire US birds
-    CNT_CFG = {
+        "dataset":          args.dataset,
         "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
         "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
         "rcs":              1,      # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
                                     # once considered setting get_bird_rcs(54)
-        "threshold_corr":   0.95,   # dual-pol cross correlation threshold
+        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+            np.nan,                 # no dual-pol cross correlation filtering
+            0.95
+        ],
         "threshold_linZ":   {
-            40: 216309,             # 40dBZ
+            40: 216309,             # 40dBZ -> 216309 in the linear scale
+        }                           # linear scale threshold above which we consider reflectivity to be too high,
+                                    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
+    }
+elif args.species == "swallow" and args.model_version == "v2":  # Great Lakes birds
+    CNT_CFG = {
+        "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
+        "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
+        "rcs":              get_bird_rcs(54),
+        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+            np.nan,                 # no dual-pol cross correlation filtering
+        ],
+        "threshold_linZ":   {
+            30: 21630,              # 30dBZ
         }
     }
-elif args.species == "bat":  # Texas bats deployment
+elif args.species == "bat" and args.model_version == "v3":  # Texas bats deployment
     CNT_CFG = {
         "count_scaling":    1.2,
         "max_height":       5000,
         "rcs":              4.519,
-        "threshold_corr":   0.95,   # np.nan if we don't want to use a dual-pol cross correlation threshold
+        "threshold_xcorr":  [       # dual-pol cross correlation threshold
+            0.95
+        ],
         "threshold_linZ": {
             60: 21630891,           # 60dBZ
             40: 216309,             # 40dBZ

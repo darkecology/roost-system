@@ -10,7 +10,8 @@ NUM_CPUS = 7
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
 STATIONS = [
-    "KCAE",
+    "KBUF"
+    # "KCAE",
     # "KCBW",
     # "KGYX",
     # "KBOX",
@@ -38,7 +39,7 @@ STATIONS = [
 ]
 TIMES = [
     # (f"{year}0601", f"{year}1231") for year in range(2013, 2024)
-    (f"{year}0601", f"{year}0602") for year in [2010]
+    (f"{year}0807", f"{year}0808") for year in [2015]
 ]
 # or
 # STATIONS_TIMES = [
@@ -50,7 +51,7 @@ TIMES = [
 
 SPECIES = "swallow"
 SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
-MIN_BEFORE = 60
+MIN_BEFORE = 30
 MIN_AFTER = 90
 
 # directory for system outputs: ${OUTPUT_ROOT}/${EXPERIMENT_NAME}
@@ -79,7 +80,6 @@ for args in args_list:
     
     slurm_logs = f"slurm_logs/{EXPERIMENT_NAME}/{station}"
     slurm_output = os.path.join(slurm_logs, f"{station}_{start}_{end}.out")
-    slurm_error = os.path.join(slurm_logs, f"{station}_{start}_{end}.err")
     os.makedirs(slurm_logs, exist_ok=True)
 
     os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
@@ -90,7 +90,6 @@ for args in args_list:
     cmd = f'''sbatch \
     --job-name="{station}{start}_{end}" \
     --output="{slurm_output}" \
-    --error="{slurm_error}" \
     --partition=longq \
     --nodes=1 \
     --ntasks=1 \
