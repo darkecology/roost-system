@@ -79,7 +79,8 @@ class RoostSystem:
                 f"No successfully rendered scan.\nTotal time elapse: {process_end_time - process_start_time}\n",
                 flush=True
             )
-            delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
+            if not self.args.keep_scans:
+                delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
             return
 
         if self.args.just_render:
@@ -192,7 +193,8 @@ class RoostSystem:
             cleaned_detections, tracks, self.postprocess.geosize, self.count_cfg,
             self.dirs["scan_dir"], scanname2key, tracks_path, sweeps_path
         )
-        delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
+        if not self.args.keep_scans:
+            delete_files([os.path.join(self.dirs["scan_dir"], key) for key in keys])
 
         process_end_time = time.time()
         logger.info(
