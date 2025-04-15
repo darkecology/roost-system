@@ -1,5 +1,5 @@
 """
-This script can launch many jobs in parallel, each for a station-year and on separate cpus.
+This script deploys a finetuned checkpoint on multiple station-years in parallel on separate cpus.
 On swarm, we can launch 128 longq jobs in parallel.
 """
 import os
@@ -18,11 +18,11 @@ MIN_BEFORE = 60
 MIN_AFTER = 90
 
 # directory for system outputs: ${OUTPUT_ROOT}/${EXPERIMENT_NAME}
-EXPERIMENT_NAME = f"am_KGRR_10"  # TODO
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data"
+EXPERIMENT_NAME = f"am_KGRR_10"  # TODO: checkpoint name
 
 # Config for transferring outputs from the computing cluster to our server
-SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
+SRC_SLURM = "slurm_logs"
 
 DST_HOST = "doppler.cs.umass.edu"
 DST_IMG = "/var/www/html/roost/img"  # dz05 and vr05 jpg images
@@ -57,12 +57,11 @@ for args in args_list:
     --cpus-per-task={NUM_CPUS} \
     --mem-per-cpu=2000 \
     --time=7-00:00:00 \
-    demo.sh \
+    deploy.sh \
     {SPECIES} {station} {start} {end} \
     {SUN_ACTIVITY} {MIN_BEFORE} {MIN_AFTER} \
-    {OUTPUT_ROOT} \
-    {EXPERIMENT_NAME} {SRC_SLURM} \
-    {DST_HOST} {DST_IMG} {DST_PRED} {DST_OTHERS}'''
+    {OUTPUT_ROOT} {EXPERIMENT_NAME} \
+    {SRC_SLURM} {DST_HOST} {DST_IMG} {DST_PRED} {DST_OTHERS}'''
 
     os.system(cmd)
     time.sleep(1)

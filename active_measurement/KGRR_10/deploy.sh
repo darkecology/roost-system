@@ -17,7 +17,7 @@ DST_IMG=${12}
 DST_PRED=${13}
 DST_OTHERS=${14}
 
-python demo.py \
+python deploy.py \
 --species ${SPECIES} --station ${STATION} --start ${START} --end ${END} \
 --sun_activity ${SUN_ACTIVITY} --min_before ${MIN_BEFORE} --min_after ${MIN_AFTER} \
 --data_root ${OUTPUT_ROOT}/${DATASET} --keep_scans
