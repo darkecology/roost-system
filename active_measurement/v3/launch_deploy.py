@@ -9,7 +9,7 @@ import time
 NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
-STATIONS = ["KCLE", "KBUF", "KTYX", "KGRB", "KMQT", "KMKX", "KLOT", "KIWX", "KGRR", "KAPX", "KDTX", "KDLH"]  # TODO
+STATIONS = ["KCLE", "KBUF", "KTYX", "KGRB", "KMQT", "KMKX", "KLOT", "KIWX", "KGRR", "KAPX", "KDTX", "KDLH"]
 TIMES = [(f"{year}0601", f"{year}1031") for year in range(2015, 2020)]
 
 SPECIES = "swallow"
@@ -17,13 +17,12 @@ SUN_ACTIVITY = "sunrise"  # bird activities occur around sunrise
 MIN_BEFORE = 30
 MIN_AFTER = 90
 
-# directory for system outputs: ${OUTPUT_ROOT}/${MODEL_NAME}
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/active_measurement"
-MODEL_NAME = f"v3"  # TODO
-os.makedirs(os.path.join(OUTPUT_ROOT, MODEL_NAME), exist_ok=True)
+MODEL_NAME = "v3"
+os.makedirs(os.path.join(OUTPUT_ROOT, MODEL_NAME), exist_ok=True)  # output_dir
 
-# directory for slurm logs
-SRC_SLURM = f"{MODEL_NAME}/slurm_logs"
+slurm_logs_dir = f"{MODEL_NAME}/slurm_logs"
+os.makedirs(slurm_logs_dir, exist_ok=True)
 
 # Config for transferring outputs from the computing cluster to our server
 DST_HOST = "doppler.cs.umass.edu"
@@ -31,18 +30,13 @@ DST_IMG = "/var/www/html/roost/img"  # dz05 and vr05 jpg images
 DST_PRED = "/scratch2/wenlongzhao/roostui/data"  # bounding boxes and counts
 DST_OTHERS = "/scratch2/wenlongzhao/roosts_deployment_outputs"  # logs
 
-try:
-    assert STATIONS_TIMES
-    args_list = STATIONS_TIMES
-except:
-    args_list = [(s, t[0], t[1]) for s in STATIONS for t in TIMES]
+args_list = [(s, t[0], t[1]) for s in STATIONS for t in TIMES]
 for args in args_list:
     station = args[0]
     start = args[1]
     end = args[2]
 
-    slurm_output = os.path.join(SRC_SLURM, f"{station}_{start}_{end}.out")
-    os.makedirs(SRC_SLURM, exist_ok=True)
+    slurm_output = os.path.join(slurm_logs_dir, f"{station}_{start}_{end}.out")
 
     os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
     os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")

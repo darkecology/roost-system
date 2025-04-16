@@ -7,6 +7,7 @@ tools/post_hoc_counting/unused_count_texas_bats_v3_long/texas_bats_v3_long*
 tools/deployment_requests
 development/custom_eval/collected_results
 active_measurement/ground_truth/all_stations_v2_screened
+slurm_logs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

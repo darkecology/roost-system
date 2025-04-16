@@ -5,7 +5,7 @@
 1. Input
    1. `<model_dir>/model_final.pth`
    2. deployment scope: stations, years and days, minute window
-2. Under `active_measurement`, run `python <model_dir>/launch_deploy.py`.
+2. Under `active_measurement`, run `python launch_deploy.py`.
    1. Downloading radar data and rendering arrays (do this once and cache)
    2. Detection with the current detector checkpoint `<model_dir>/model_final.pth`
    3. Tracking

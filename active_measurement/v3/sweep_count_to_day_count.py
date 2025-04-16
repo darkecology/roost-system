@@ -3,7 +3,6 @@
 import pandas as pd
 from roosts.utils.summary_utils import *
 
-STATIONS = ["KCLE", "KBUF", "KTYX", "KGRB", "KMQT", "KMKX", "KLOT", "KIWX", "KGRR", "KAPX", "KDTX", "KDLH"]
 YEARS = ["2015", "2016", "2017", "2018", "2019"]
 MONTHS = set(["06", "07", "08", "09", "10"])
 SWEEP_COUNT_DIR = "us_sunrise_v3"
