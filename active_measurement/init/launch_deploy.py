@@ -18,7 +18,7 @@ MIN_BEFORE = 30
 MIN_AFTER = 90
 
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/active_measurement"
-MODEL_NAME = "v3"
+MODEL_NAME = "init"
 os.makedirs(os.path.join(OUTPUT_ROOT, MODEL_NAME), exist_ok=True)  # output_dir
 
 slurm_logs_dir = f"{MODEL_NAME}/slurm_logs"
