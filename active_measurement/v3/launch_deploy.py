@@ -9,7 +9,7 @@ import time
 NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
-STATIONS = ["KGRR"]  # TODO
+STATIONS = ["KCLE", "KBUF", "KTYX", "KGRB", "KMQT", "KMKX", "KLOT", "KIWX", "KGRR", "KAPX", "KDTX", "KDLH"]  # TODO
 TIMES = [(f"{year}0601", f"{year}1031") for year in range(2015, 2020)]
 
 SPECIES = "swallow"
@@ -19,7 +19,7 @@ MIN_AFTER = 90
 
 # directory for system outputs: ${OUTPUT_ROOT}/${MODEL_NAME}
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/active_measurement"
-MODEL_NAME = f"KGRR_10"  # TODO
+MODEL_NAME = f"v3"  # TODO
 os.makedirs(os.path.join(OUTPUT_ROOT, MODEL_NAME), exist_ok=True)
 
 # directory for slurm logs

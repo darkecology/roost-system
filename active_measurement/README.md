@@ -2,24 +2,22 @@
 **All dates are in UTC.**
 
 ### Predicting Counts - Wenlong / Max
-1. Input files
-   1. **unlabeled_station_days.json**
-      ```python
-        ["SSSSYYYYMMDD"]
-      ```
-   2. **detector checkpoint**
-2. Steps:
-   1. Downloading and rendering (do this once and cache)
-   2. Detection (with the current detector checkpoint)
+1. Input
+   1. `<model_dir>/model_final.pth`
+   2. deployment scope: stations, years and days, minute window
+2. Under `active_measurement`, run `python <model_dir>/launch_deploy.py`.
+   1. Downloading radar data and rendering arrays (do this once and cache)
+   2. Detection with the current detector checkpoint `<model_dir>/model_final.pth`
    3. Tracking
-   4. Bird count estimation
-3. Output files
-   1. **unlabeled_station_days_predicted_counts.csv**
+   4. Per-sweep counting
+3. Under `active_measurement`, run `python sweep_count_to_day_count.py --model_dir <model_dir> --sweep_counts_dir <sweep_count_dir> --day_count_dir day_counts`.
+   1. Aggregate per-sweep counts to per-day counts
       ```
         station,year,month,day,count
         SSSS,YYYY,MM,DD,C
       ```
-      
+4. Output files: `<model_dir>/day_counts/predicted_day_counts_SSSS_YYYYMMDD_YYYYMMDD.csv`
+
 ### Estimation - Jinlin
 1. Input files
    1. **unlabeled_station_days_predicted_counts.csv**

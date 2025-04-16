@@ -9,8 +9,6 @@ from roosts.utils.time_util import get_days_list, get_sun_activity_time
 from roosts.utils.s3_util import get_station_day_scan_keys
 from roosts.utils.counting_util import get_bird_rcs
 
-here = os.path.dirname(os.path.realpath(__file__))
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--species', type=str, required=True, help="swallow or bat")
 parser.add_argument('--station', type=str, required=True, help="a single station name, eg. KDOX")
@@ -21,8 +19,8 @@ parser.add_argument('--min_before', type=int, default=30,
                     help="process scans at most these minutes before the selected sun activity")
 parser.add_argument('--min_after', type=int, default=90,
                     help="process scans at most these minutes after the selected sun activity")
-parser.add_argument('--data_root', type=str, help="directory for all outputs",
-                    default=f"{here}/../roosts_data")
+parser.add_argument('--model_name', type=str, required=True, help="directory for the checkpoint to deploy")
+parser.add_argument('--data_root', type=str, required=True, help="directory for all outputs")
 
 parser.add_argument(
     '--keep_scans', action='store_true', help='keep the downloaded scans; if not, delete them after rendering'
@@ -38,7 +36,7 @@ print(args, flush=True)
 ######################### CONFIG #########################
 # detection model config
 DET_CFG = {
-    "ckpt_path":        f"{here}/model_final.pth",
+    "ckpt_path":        f"{args.model_name}/model_final.pth",
     "imsize":           1100,
     "anchor_sizes":     [[16, 18, 20, 22, 24, 26, 28, 30, 32],
                          [32, 36, 40, 44, 48, 52, 56, 60, 64],
@@ -65,10 +63,8 @@ PP_CFG = {
 CNT_CFG = {
     "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
     "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
-    "rcs":              1,      # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
-                                # once considered setting get_bird_rcs(54)
+    "rcs":              get_bird_rcs(54),
     "xcorr_threshold":  [       # dual-pol cross correlation threshold
-        np.nan,                 # no dual-pol cross correlation filtering
         0.95
     ],
     "linZ_threshold":   {
