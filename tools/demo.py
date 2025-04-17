@@ -29,6 +29,9 @@ parser.add_argument(
     help="Name of the dataset to produce, e.g., us_sunrise_v3. Used to decide the counting config."
 )
 
+parser.add_argument(
+    '--keep_scans', action='store_true', help='keep the downloaded scans; if not, delete them after rendering'
+)
 parser.add_argument('--just_render', action='store_true', help="just download and render, no detection and tracking")
 parser.add_argument('--gif_vis', action='store_true', help="generate gif visualization")
 parser.add_argument('--aws_access_key_id', type=str, default=None)

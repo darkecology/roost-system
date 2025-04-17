@@ -19,8 +19,8 @@ NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-STATIONS = ["KTLX", "KCBW", "KCXX", "KGYX", "KTYX", "KBUF", "KENX", "KBGM", "KBOX", "KCCX", "KDIX", "KLWX", "KDOX", "KAKQ"]
-# STATIONS = ["KRAX", "KMHX", "KLTX", "KOKX"]
+STATIONS = ["KTLX", "KCBW", "KCXX", "KGYX", "KTYX", "KBUF", "KENX", "KBGM", "KBOX", "KCCX"]
+# STATIONS = ["KDIX", "KLWX", "KDOX", "KAKQ", "KRAX", "KMHX", "KLTX", "KOKX"]
 TIMES = [
     (f"{year}0601", f"{year}1231") for year in range(1995, 2013)
     # (f"{year}0815", f"{year}0816") for year in [2018]
@@ -45,7 +45,7 @@ OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data"
 os.makedirs(os.path.join(OUTPUT_ROOT, EXPERIMENT_NAME), exist_ok=True)
 
 # directory for slurm logs
-SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
+SRC_SLURM = "/mnt/nfs/home/wenlongzhao/work1/roost-system/tools/slurm_logs"
 
 # Config for transferring outputs from the computing cluster to our server
 DST_HOST = "doppler.cs.umass.edu"
