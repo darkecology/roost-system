@@ -9,7 +9,7 @@ import time
 NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
-STATIONS = ["KCLE", "KBUF", "KTYX", "KGRB", "KMQT", "KMKX", "KLOT", "KIWX", "KGRR", "KAPX", "KDTX", "KDLH"]
+STATIONS = ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KLOT", "KMKX", "KTYX", "KMQT", "KIWX"]
 TIMES = [(f"{year}0601", f"{year}1031") for year in range(2015, 2020)]
 
 SPECIES = "swallow"

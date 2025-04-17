@@ -148,7 +148,7 @@ for day_idx, day in enumerate(days):
         args.station,
         aws_access_key_id=args.aws_access_key_id,
         aws_secret_access_key=args.aws_secret_access_key,
-    )  # aws keys which uses UTC time: yyyy/mm/dd/ssss/ssssyyyymmdd_hhmmss*
+    )  # aws keys which uses UTC time, e.g., '2015/09/01/KCLE/KCLE20150901_102504_V06.gz'
     keys = sorted(list(set(keys)))
 
     roost_system.run_day_station(day, sun_activity_time, keys, process_start_time)
