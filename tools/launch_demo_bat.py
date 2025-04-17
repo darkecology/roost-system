@@ -31,7 +31,7 @@ OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data/{EXPERIMENT_NAME}"
 SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
 DST_HOST = "doppler.cs.umass.edu"
 DST_IMG = "/var/www/html/roost/img" # dz05 and vr05 jpg images
-DST_PRED = "/scratch2/wenlongzhao/roostui/data" # csv for scans_and_tracks
+DST_PRED = "/scratch2/wenlongzhao/roostui/data" # bounding boxes and counts
 DST_ARRAY = "/scratch2/wenlongzhao/RadarNPZ/v0.3.0/" # arrays
 DST_OTHERS = "/scratch2/wenlongzhao/roosts_deployment_outputs" # logs, scans
 
@@ -47,7 +47,6 @@ for args in args_list:
     
     slurm_logs = f"slurm_logs/{EXPERIMENT_NAME}/{station}"
     slurm_output = os.path.join(slurm_logs, f"{station}_{start}_{end}.out")
-    slurm_error = os.path.join(slurm_logs, f"{station}_{start}_{end}.err")
     os.makedirs(slurm_logs, exist_ok=True)
 
     os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
@@ -58,7 +57,6 @@ for args in args_list:
     cmd = f'''sbatch \
     --job-name="{station}{start}_{end}" \
     --output="{slurm_output}" \
-    --error="{slurm_error}" \
     --partition=longq \
     --nodes=1 \
     --ntasks=1 \

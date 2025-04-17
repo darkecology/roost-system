@@ -1,5 +1,15 @@
 """
-This script can launch many jobs in parallel, each for a station-year and on separate cpus
+This script can launch many jobs in parallel, each for a station-year and on separate cpus.
+On swarm, we can launch 128 longq jobs in parallel.
+Assume we process 11 years from 2013 to 2023.
+We can launch 11 stations or 121 station-years in parallel.
+In total there are about 143 stations in the US.
+Deployment will take about 13 days.
+
+Assume we process 18 years from 1995 to 2012.
+We can launch 7 stations or 126 station-years in parallel.
+In total there are about 143 stations in the US.
+Deployment will take about 21 days.
 """
 import os
 import time
@@ -9,47 +19,22 @@ NUM_CPUS = 7
 
 # deployment station, start date (inclusive), end date (inclusive)
 # specify either
-STATIONS = [
-    "KBUF",
-    "KCAE",
-    "KCBW",
-    "KGYX",
-    "KBOX",
-    "KOKX",
-    "KCXX",
-    "KENX",
-    "KDIX",
-    "KDOX",
-    "KTYX",
-    "KBGM",
-    "KMHX",
-    # "KAKQ",
-    # "KLWX",
-    # "KCCX",
-    # "KLTX",
-    # "KRAX",
-    # "KPBZ",
-    # "KFCX",
-    # "KAMX",
-    # "KMLB",
-    # "KCLX",
-    # "KJAX",
-    # "KBYX",
-]
+STATIONS = ["KTLX", "KCBW", "KCXX", "KGYX", "KTYX", "KBUF", "KENX", "KBGM", "KBOX", "KCCX", "KDIX", "KLWX", "KDOX", "KAKQ"]
+# STATIONS = ["KRAX", "KMHX", "KLTX", "KOKX"]
 TIMES = [
-    (f"{year}0601", f"{year}1231") for year in range(2013, 2024)
+    (f"{year}0601", f"{year}1231") for year in range(1995, 2013)
     # (f"{year}0815", f"{year}0816") for year in [2018]
 ]
 # or
 # STATIONS_TIMES = [
 #     ("KTYX", "20200805", "20200806"),
 # ]
-# for transferring outputs from the computing cluster to our server
+# for only transferring outputs from the computing cluster to our server
 # STATIONS = ["XXXX"]
 # TIMES = [("99990101", "99991201")]
 
 SPECIES = "swallow"
-SUN_ACTIVITY = "sunrise" # bird activities occur around sunrise
+SUN_ACTIVITY = "sunrise"  # bird activities occur around sunrise
 MIN_BEFORE = 60
 MIN_AFTER = 90
 
@@ -57,15 +42,17 @@ MIN_AFTER = 90
 MODEL_VERSION = "v3"
 EXPERIMENT_NAME = f"us_sunrise_{MODEL_VERSION}" # dataset name
 OUTPUT_ROOT = f"/mnt/nfs/scratch1/wenlongzhao/roosts_data"
+os.makedirs(os.path.join(OUTPUT_ROOT, EXPERIMENT_NAME), exist_ok=True)
 
-# Config for transferring outputs from the computing cluster to our server
+# directory for slurm logs
 SRC_SLURM = "~/work1/roost-system/tools/slurm_logs"
 
+# Config for transferring outputs from the computing cluster to our server
 DST_HOST = "doppler.cs.umass.edu"
-DST_IMG = "/var/www/html/roost/img" # dz05 and vr05 jpg images
-DST_PRED = "/scratch2/wenlongzhao/roostui/data" # bounding boxes and counts
-DST_ARRAY = "/scratch2/wenlongzhao/RadarNPZ/v0.3.0" # arrays
-DST_OTHERS = "/scratch2/wenlongzhao/roosts_deployment_outputs" # logs, scans
+DST_IMG = "/var/www/html/roost/img"  # dz05 and vr05 jpg images
+DST_PRED = "/scratch2/wenlongzhao/roostui/data"  # bounding boxes and counts
+DST_ARRAY = "/scratch2/wenlongzhao/RadarNPZ/v0.3.0"  # arrays
+DST_OTHERS = "/scratch2/wenlongzhao/roosts_deployment_outputs"  # logs, scans
 
 try:
     assert STATIONS_TIMES
@@ -76,10 +63,10 @@ for args in args_list:
     station = args[0]
     start = args[1]
     end = args[2]
-    
-    slurm_logs = f"slurm_logs/{EXPERIMENT_NAME}/{station}"
-    slurm_output = os.path.join(slurm_logs, f"{station}_{start}_{end}.out")
-    os.makedirs(slurm_logs, exist_ok=True)
+
+    slurm_logs_dir = os.path.join(SRC_SLURM, EXPERIMENT_NAME, station)
+    slurm_output = os.path.join(slurm_logs_dir, f"{station}_{start}_{end}.out")
+    os.makedirs(slurm_logs_dir, exist_ok=True)
 
     os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
     os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")
@@ -101,6 +88,6 @@ for args in args_list:
     {OUTPUT_ROOT} {MODEL_VERSION} \
     {EXPERIMENT_NAME} {SRC_SLURM} \
     {DST_HOST} {DST_IMG} {DST_PRED} {DST_ARRAY} {DST_OTHERS}'''
-    
+
     os.system(cmd)
     time.sleep(1)
