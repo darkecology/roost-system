@@ -1,3 +1,5 @@
+"""Run this under ground_truth/"""
+
 import os, time
 
 NUM_CPUS = 7

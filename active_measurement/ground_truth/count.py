@@ -20,13 +20,6 @@ with open(os.path.join(args.input_dir, args.file), "r") as f:
 # 20-23 label,original_label,notes,day_notes
 title = lines[0]
 assert title[14] == "local_date" and title[20] == "label"
-lines = [
-    line.rstrip().split(",") for line in lines[1:]
-    if (
-        int(line[14][4:8]) > 600 and int(line[14][4:8]) < 1100 and # June to Oct
-        line[20] in ["swallow-roost", "weather-roost", "unknown-noise-roost", "AP-roost", "bad-track"]  # roosts
-    )
-]
 
 PP_CFG = {
     "geosize":          300000,
@@ -47,7 +40,7 @@ CNT_CFG = {
 
 OUTPUT_DIR = f"sweep_counts"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-station_day_range = "_".join(args.file.split("_")[2:])
+station_day_range = "_".join(args.file.split("_")[2:]).replace("1231", "1031")
 f_sweep = open(os.path.join(OUTPUT_DIR, f"sweeps_{station_day_range}"), "w")
 
 f_sweep.write(
@@ -65,9 +58,15 @@ f_sweep.write('\n')
 
 # COUNTING! Refer to the count_and_save function in visualizer.py
 for i in range(1, len(lines)):
-    if i % 20 == 0:
+    if i % 100 == 0:
         print(i)
     line = lines[i]
+
+    if not (
+        int(line[14][4:8]) > 600 and int(line[14][4:8]) < 1100 and # June to Oct
+        line[20] in ["swallow-roost", "weather-roost", "unknown-noise-roost", "AP-roost", "bad-track"]  # roosts
+    ):
+        continue
 
     xyr = xyr2geo(
         line[4], line[5], line[6],
@@ -102,7 +101,7 @@ for i in range(1, len(lines)):
                 # This sweep file is not processed by the UI
                 # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
                 # YYYYMMDD: local date
-                f"{filename[:4]}{line[10][:8]}-{line[0]:d}",
+                line[0],
 
                 filename,
                 f"{sweep_index}",
@@ -140,3 +139,5 @@ for i in range(1, len(lines)):
         except Exception as error:
             print(f"line {i} sweep {sweep_index} has an error in counting animals: ", error)
             continue
+
+print("Done.")
