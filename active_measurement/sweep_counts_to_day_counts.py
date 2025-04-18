@@ -1,5 +1,5 @@
 import pandas as pd
-from roosts.utils.summary_utils import *
+from roosts.utils.count_summary_util import *
 
 
 MODEL_DIRS = ["ground_truth", "init"]
