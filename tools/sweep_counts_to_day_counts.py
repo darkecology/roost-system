@@ -1,14 +1,23 @@
 """
-TODO: Configure the output_dir which is supposed to have the sweep_counts directory
+TODO: Configure the output_dir which is supposed to have the sweeps*.txt files
 """
+import pandas as pd
+import os
+from roosts.utils.count_summary_util import *
+
+SWEEP_COUNT_KEY = "n_xcorrBelow0.95_refBelow40_animals"
 
 file_names = [
-    f for f in os.listdir(os.path.join(output_dir, "sweep_counts"))
+    f for f in os.listdir(output_dir)
     if f.startswith("sweeps")
 ]
 
 for file_name in file_names:
-    df = pd.read_csv(file_name)
+    print("Processing file:", os.path.join(output_dir, file_name))
+    df = pd.read_csv(os.path.join(output_dir, file_name))
+    if len(df) == 0:
+        print("Empty file, skipping...")
+        continue
     # track_id,filename,sweep_idx,sweep_angle,count_scaling,
     # n_roost_pixels,
     # n_refAbove40_pixels,n_refBelow40_animals,
@@ -31,11 +40,11 @@ for file_name in file_names:
     daily_df.sort_values(by=["station_day"], inplace=True)
 
     # save "station_day,n_animals" to csv
-    os.makedirs(os.path.join(output_dir, "day_counts"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir), exist_ok=True)
     daily_df.to_csv(
         os.path.join(
             output_dir,
-            "day_counts",
             file_name.replace("sweeps", "predicted_day_counts")
-        )
+        ),
+        index=False
     )

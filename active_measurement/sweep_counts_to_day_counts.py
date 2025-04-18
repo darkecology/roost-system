@@ -1,10 +1,10 @@
 import pandas as pd
+import os
 from roosts.utils.count_summary_util import *
 
 
 MODEL_DIRS = ["ground_truth", "init"]
-GREAT_LAKES = ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]
-for station in GREAT_LAKES:
+for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]:
     MODEL_DIRS.append(f"{station}_10")
 
 SWEEP_COUNT_KEY = "n_xcorrBelow0.95_refBelow40_animals"
@@ -16,7 +16,11 @@ for model_dir in MODEL_DIRS:
     ]
 
     for file_name in file_names:
-        df = pd.read_csv(file_name)
+        print("Processing file:", os.path.join(model_dir, "sweep_counts", file_name))
+        df = pd.read_csv(os.path.join(model_dir, "sweep_counts", file_name))
+        if len(df) == 0:
+            print("Empty file, skipping...")
+            continue
         # track_id,filename,sweep_idx,sweep_angle,count_scaling,
         # n_roost_pixels,
         # n_refAbove40_pixels,n_refBelow40_animals,
@@ -34,7 +38,7 @@ for model_dir in MODEL_DIRS:
         track_df = summarize_over_detections(det_df)
 
         # Aggregate tracks by date
-        track_df["station_day"] = track_df.apply(lambda x: x.track_id[0:12], axis = 1)
+        track_df["station_day"] = track_df.apply(lambda x: x.track_id[0:12], axis=1)
         daily_df = track_df.groupby("station_day", as_index=False)["n_animals"].sum()
         daily_df.sort_values(by=["station_day"], inplace=True)
 
@@ -45,5 +49,20 @@ for model_dir in MODEL_DIRS:
                 model_dir,
                 "day_counts",
                 file_name.replace("sweeps", "predicted_day_counts")
-            )
+            ),
+            index=False
         )
+
+"""
+On swarm, cd ~/work1/counting-labels/roost_counts. In Python:
+ 
+import os
+MODEL_DIRS = ["ground_truth", "init"]
+for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]:
+    MODEL_DIRS.append(f"{station}_10")
+    
+for m in MODEL_DIRS:
+    os.makedirs(m, exist_ok=True)
+    os.system(f"cp -r ../../roost-system/active_measurement/{m}/day_counts {m}")
+    os.system(f"cp -r ../../roost-system/active_measurement/{m}/sweep_counts {m}")
+"""
