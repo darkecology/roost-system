@@ -1,5 +1,3 @@
-"""Run this under ground_truth/"""
-
 import os, time
 
 NUM_CPUS = 7
@@ -8,10 +6,12 @@ os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OMP_NUM_THREADS={NUM_CPUS}")
 
 
-SLURM_LOGS = f"slurm_logs/"
+EXP_DIR = "/mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/ground_truth"
+
+INPUT_DIR = f"{EXP_DIR}/all_stations_v2_screened"
+SLURM_LOGS = f"{EXP_DIR}/slurm_counting_logs/"
 os.makedirs(SLURM_LOGS, exist_ok=True)
 
-INPUT_DIR = "all_stations_v2_screened"
 for file in os.listdir(INPUT_DIR):
     station, year = file.split("_")[2], file.split("_")[3][:4]
     slurm_output = os.path.join(SLURM_LOGS, f"{file}.out")

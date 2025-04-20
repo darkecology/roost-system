@@ -354,7 +354,7 @@ class Visualizer:
 
                         scan_wise_bad_pixel_counts = [""]
                         for xcorr_threshold in count_cfg["xcorr_threshold"]:
-                            for linZ_threshold in count_cfg["linZ_threshold"].keys():
+                            for linZ_threshold in count_cfg["linZ_threshold"].values():
                                 (
                                     n_radar_pixels,
                                     n_xcorrAboveC_pixels,
@@ -385,7 +385,7 @@ class Visualizer:
                     except:
                         scan_wise_bad_pixel_counts = [""]
                         for xcorr_threshold in count_cfg["xcorr_threshold"]:
-                            for linZ_threshold in count_cfg["linZ_threshold"].keys():
+                            for linZ_threshold in count_cfg["linZ_threshold"].values():
                                 if xcorr_threshold is np.nan:
                                     scan_wise_bad_pixel_counts += [""]
                                 else:
@@ -417,7 +417,7 @@ class Visualizer:
 
                                 pixel_and_animal_counts = [""]
                                 for xcorr_threshold in count_cfg["xcorr_threshold"]:
-                                    for linZ_threshold in count_cfg["linZ_threshold"].keys():
+                                    for linZ_threshold in count_cfg["linZ_threshold"].values():
                                         (
                                             n_roost_pixels,
                                             n_xcorrAboveC_pixels,
