@@ -36,13 +36,10 @@ CNT_CFG = {
     }                           # linear scale threshold above which we consider reflectivity to be too high,
 }
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+output_dir = os.path.join(os.path.dirname(args.input_dir), "sweep_counts")
+os.makedirs(output_dir, exist_ok=True)
 station_day_range = "_".join(args.file.split("_")[-3:])
-f_sweep = open(os.path.join(
-    os.path.dirname(args.input_dir),
-    "sweep_counts",
-    f"sweeps_{station_day_range}"
-), "w")
+f_sweep = open(os.path.join(output_dir, f"sweeps_{station_day_range}"), "w")
 
 f_sweep.write(
     'track_id,filename,sweep_idx,sweep_angle,count_scaling,n_roost_pixels'

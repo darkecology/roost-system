@@ -16,6 +16,9 @@ for EXP_DIR in EXP_DIRS:
     os.makedirs(SLURM_LOGS, exist_ok=True)
 
     for file in os.listdir(INPUT_DIR):
+        if not file.startswith("tracks"):
+            continue
+
         station, year = file.split("_")[1], file.split("_")[2][:4]
         slurm_output = os.path.join(SLURM_LOGS, f"{file}.out")
 
