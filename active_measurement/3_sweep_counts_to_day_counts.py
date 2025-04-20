@@ -49,7 +49,7 @@ for model_dir in MODEL_DIRS:
             os.path.join(
                 model_dir,
                 "day_counts",
-                file_name.replace("sweeps", "predicted_day_counts")
+                file_name.replace("sweeps", "day_counts")
             ),
             index=False
         )

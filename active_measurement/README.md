@@ -16,7 +16,7 @@
         station,year,month,day,count
         SSSS,YYYY,MM,DD,C
       ```
-4. Output files: `<model_dir>/day_counts/predicted_day_counts_SSSS_YYYYMMDD_YYYYMMDD.csv`
+4. Output files: `<model_dir>/day_counts/day_counts_SSSS_YYYYMMDD_YYYYMMDD.csv`
 
 ### Estimation - Jinlin
 1. Input files
