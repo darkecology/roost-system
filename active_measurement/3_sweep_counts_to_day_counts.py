@@ -6,7 +6,7 @@ from roosts.utils.count_summary_util import *
 MODEL_DIRS = ["ground_truth", "init"]
 for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KTYX"]:
     MODEL_DIRS.append(f"{station}_10")
-MODEL_DIRS = [f"/mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/{d}"]
+MODEL_DIRS = [f"/mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/{d}" for d in MODEL_DIRS]
 
 SWEEP_COUNT_KEY = "n_xcorrBelow0.95_refBelow40_animals"
 
@@ -28,6 +28,12 @@ for model_dir in MODEL_DIRS:
         # n_xcorrAbove0.95_pixels,n_xcorrBelow0.95_refAbove40_pixels,n_xcorrBelow0.95_refBelow40_animals
         # KAPX20150605-4,KAPX20150605_090714_V06,0,0.483,1.200,2479,69,570.957,278,12,194.823
         df = df[["track_id", "filename", "sweep_idx", "sweep_angle", SWEEP_COUNT_KEY]].copy()
+        df['track_id'] = df.apply(
+            lambda row: row['track_id'] if "-" in str(row['track_id']) else f"{row['filename'][:12]}-{row['track_id']}",
+            axis=1
+        )  # TODO: track_id should be SSSSYYYYMMDD-id, where YYYYMMDD is local date
+           # file name is SSSSYYYYMMDD_HHMMSS_V06, where YYYYMMDD is UTC date
+           # here we assume the UTC date is the same as local date
 
         # Aggregate over sweeps for each detection
         # df: track_id,filename,sweep_idx,sweep_angle,SWEEP_COUNT_KEY

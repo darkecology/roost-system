@@ -89,7 +89,7 @@ for i in range(1, len(lines)):
                 # This sweep file is not processed by the UI
                 # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
                 # YYYYMMDD: local date
-                line[0],
+                line[0],  # TODO see visualizer.py, this should be prepended with local date
 
                 filename,
                 f"{sweep_index}",
