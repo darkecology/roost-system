@@ -4,8 +4,9 @@ from roosts.utils.count_summary_util import *
 
 
 MODEL_DIRS = ["ground_truth", "init"]
-for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]:
+for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KTYX"]:
     MODEL_DIRS.append(f"{station}_10")
+MODEL_DIRS = [f"/mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/{d}"]
 
 SWEEP_COUNT_KEY = "n_xcorrBelow0.95_refBelow40_animals"
 
@@ -52,17 +53,3 @@ for model_dir in MODEL_DIRS:
             ),
             index=False
         )
-
-"""
-On swarm, cd ~/work1/counting-labels/roost_counts. In Python:
- 
-import os
-MODEL_DIRS = ["ground_truth", "init"]
-for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]:
-    MODEL_DIRS.append(f"{station}_10")
-    
-for m in MODEL_DIRS:
-    os.makedirs(m, exist_ok=True)
-    os.system(f"cp -r ../../roost-system/active_measurement/{m}/day_counts {m}")
-    os.system(f"cp -r ../../roost-system/active_measurement/{m}/sweep_counts {m}")
-"""

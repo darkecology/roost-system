@@ -15,6 +15,7 @@ with open(os.path.join(args.input_dir, args.file), "r") as f:
 # 0-4   track_id,filename,from_sunrise,det_score,x,
 # 5-9   y,r,lon,lat,radius,...
 
+
 PP_CFG = {
     "geosize":          300000,
 }
@@ -32,7 +33,7 @@ CNT_CFG = {
     }                           # linear scale threshold above which we consider reflectivity to be too high,
 }
 
-output_dir = os.path.join(os.path.dirname(args.input_dir), "sweep_counts")
+output_dir = "sweep_counts"
 os.makedirs(output_dir, exist_ok=True)
 station_day_range = "_".join(args.file.split("_")[-3:])
 f_sweep = open(os.path.join(output_dir, f"sweeps_{station_day_range}"), "w")
