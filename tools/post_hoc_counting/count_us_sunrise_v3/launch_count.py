@@ -5,30 +5,30 @@ os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OMP_NUM_THREADS={NUM_CPUS}")
 
+DATA_DIR = f"predictions"
+# TODO: which files in the directory to count
+index_start, index_end = 0, 128
 
-for EXP_DIR in EXP_DIRS:
-    INPUT_DIR = f"bounding_boxes"
-    SLURM_LOGS = f"slurm_logs"
-    os.makedirs(SLURM_LOGS, exist_ok=True)
+SLURM_LOGS = f"slurm_counting_logs"
+os.makedirs(SLURM_LOGS, exist_ok=True)
 
-    for file in os.listdir(INPUT_DIR):
-        if not file.startswith("tracks"):
-            continue
+files = sorted([file for file in os.listdir(DATA_DIR) if file.startswith("track")])
+for file in files[index_start:index_end]:
 
-        station, year = file.split("_")[1], file.split("_")[2][:4]
-        slurm_output = os.path.join(SLURM_LOGS, f"{file}.out")
+    station, year = file.split("_")[1], file.split("_")[2][:4]
+    slurm_output = os.path.join(SLURM_LOGS, f"{file}.out")
 
-        cmd = f'''sbatch \
-        --job-name="{station}{year}" \
-        --output="{slurm_output}" \
-        --nodes=1 \
-        --ntasks=1 \
-        --cpus-per-task={NUM_CPUS} \
-        --mem-per-cpu=2000 \
-        --partition=longq \
-        --time=2-00:00:00 \
-        count.sh \
-        --input_dir {INPUT_DIR} --file {file}'''
+    cmd = f'''sbatch \
+    --job-name="{station}{year}" \
+    --output="{slurm_output}" \
+    --nodes=1 \
+    --ntasks=1 \
+    --cpus-per-task={NUM_CPUS} \
+    --mem-per-cpu=2000 \
+    --partition=longq \
+    --time=2-00:00:00 \
+    count.sh \
+    --data_dir {DATA_DIR} --file {file}'''
 
-        os.system(cmd)
-        time.sleep(1)
+    os.system(cmd)
+    time.sleep(1)
