@@ -74,6 +74,7 @@ class Renderer:
             ui_img_dir,
             array_render_config=ARRAY_RENDER_CONFIG,
             dualpol_render_config=DUALPOL_RENDER_CONFIG,
+            not_check_img_exist=False  # by default we check whether images have been rendered
     ):
         self.download_dir = download_dir
         self.npz_dir = npz_dir
@@ -81,6 +82,7 @@ class Renderer:
         self.dz05_imgdir = os.path.join(ui_img_dir, 'dz05')
         self.vr05_imgdir = os.path.join(ui_img_dir, 'vr05')
         self.imgdirs = {("reflectivity", 0.5): self.dz05_imgdir, ("velocity", 0.5): self.vr05_imgdir}
+        self.not_check_img_exist = not_check_img_exist
 
         self.array_render_config = array_render_config
         self.dualpol_render_config = dualpol_render_config
@@ -115,7 +117,9 @@ class Renderer:
             npz_path = os.path.join(npz_dir, f"{scan}.npz")
             dz05_path = os.path.join(dz05_imgdir, f"{scan}.jpg")
 
-            if os.path.exists(npz_path) and os.path.exists(dz05_path) and not force_rendering:
+            if os.path.exists(npz_path) and (
+                os.path.exists(dz05_path) or self.not_check_img_exist
+            ) and not force_rendering:
                 npz_files.append(npz_path)
                 scan_names.append(scan)
                 img_files.append(dz05_path)

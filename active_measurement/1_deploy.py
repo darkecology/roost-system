@@ -33,6 +33,10 @@ args = parser.parse_args()
 assert args.sun_activity in ["sunrise", "sunset"]
 print(args, flush=True)
 
+args.not_check_img_exist = True  # Unique to active measurement experiments.
+                                 # We don't rely on whether images for the UI have been rendered to
+                                 # decide whether to render again.
+
 ######################### CONFIG #########################
 # detection model config
 DET_CFG = {
