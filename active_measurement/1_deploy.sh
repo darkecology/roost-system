@@ -23,19 +23,23 @@ python 1_deploy.py \
 
 ##### Transfer outputs. Only transfer the currently processed station-year. #####
 # Transfer outputs for the UI in the verbose mode and with compression
-# (1) images to visualize dz05 and vr05  TODO: remove
-PATTERN="*/${YEAR}/*/*/${STATION}/*"  # ${} will be expanded, * remains as is
-echo "##### Transferring images: $PATTERN #####"
-ssh ${DST_HOST} mkdir -p ${DST_IMG}/${MODEL_NAME}
-rsync --remove-source-files -avz \
---include='*/' \
---include="$PATTERN" \
---exclude='*' \
-${OUTPUT_ROOT}/${MODEL_NAME}/ui/img/ \
-${DST_HOST}:${DST_IMG}/${MODEL_NAME}/
+## (1) images to visualize dz05 and vr05
+#PATTERN="*/${YEAR}/*/*/${STATION}/*"  # ${} will be expanded, * remains as is
+#echo "##### Transferring images: $PATTERN #####"
+#ssh ${DST_HOST} mkdir -p ${DST_IMG}/${MODEL_NAME}
+#rsync --remove-source-files -avz \
+#--include='*/' \
+#--include="$PATTERN" \
+#--exclude='*' \
+#${OUTPUT_ROOT}/${MODEL_NAME}/ui/img/ \
+#${DST_HOST}:${DST_IMG}/${MODEL_NAME}/
 
-# (2) bounding boxes and counts  TODO: also move to counting-labels
+# (2) bounding boxes and counts
 PATTERN="*${STATION}_${YEAR}*"
+
+mkdir -p /mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/${MODEL_NAME}/sweep_counts
+cp -r ${OUTPUT_ROOT}/${MODEL_NAME}/ui/scans_and_tracks/* /mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/${MODEL_NAME}/sweep_counts/
+
 echo "##### Transferring detections: $PATTERN #####"
 ssh ${DST_HOST} mkdir -p ${DST_PRED}/${MODEL_NAME}
 rsync --remove-source-files -avz \
@@ -44,7 +48,7 @@ rsync --remove-source-files -avz \
 ${OUTPUT_ROOT}/${MODEL_NAME}/ui/scans_and_tracks/ \
 ${DST_HOST}:${DST_PRED}/${MODEL_NAME}/
 
-# (4) logs  TODO: move to counting-labels
+# (4) logs
 PATTERN="${STATION}/${YEAR}/*"
 echo "##### Transferring logs: $PATTERN #####"
 ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${MODEL_NAME}/logs
