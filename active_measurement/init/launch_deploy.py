@@ -52,7 +52,7 @@ for args in args_list:
     --cpus-per-task={NUM_CPUS} \
     --mem-per-cpu=2000 \
     --time=7-00:00:00 \
-    deploy.sh \
+    1_deploy.sh \
     {SPECIES} {station} {start} {end} \
     {SUN_ACTIVITY} {MIN_BEFORE} {MIN_AFTER} \
     {OUTPUT_ROOT} {MODEL_NAME} \

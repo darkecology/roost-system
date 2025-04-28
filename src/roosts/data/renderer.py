@@ -74,18 +74,18 @@ class Renderer:
             ui_img_dir,
             array_render_config=ARRAY_RENDER_CONFIG,
             dualpol_render_config=DUALPOL_RENDER_CONFIG,
-            not_check_img_exist=False  # by default we check whether images have been rendered
+            check_img_exist=True  # by default we check whether images have been rendered
     ):
         self.download_dir = download_dir
+
         self.npz_dir = npz_dir
+        self.array_render_config = array_render_config
+        self.dualpol_render_config = dualpol_render_config
 
         self.dz05_imgdir = os.path.join(ui_img_dir, 'dz05')
         self.vr05_imgdir = os.path.join(ui_img_dir, 'vr05')
         self.imgdirs = {("reflectivity", 0.5): self.dz05_imgdir, ("velocity", 0.5): self.vr05_imgdir}
-        self.not_check_img_exist = not_check_img_exist
-
-        self.array_render_config = array_render_config
-        self.dualpol_render_config = dualpol_render_config
+        self.check_img_exist = check_img_exist
 
     def render(self, keys, logger, force_rendering=False):
         """
@@ -117,12 +117,19 @@ class Renderer:
             npz_path = os.path.join(npz_dir, f"{scan}.npz")
             dz05_path = os.path.join(dz05_imgdir, f"{scan}.jpg")
 
-            if os.path.exists(npz_path) and (
-                os.path.exists(dz05_path) or self.not_check_img_exist
+            try:
+                np.load(npz_path)["array"]
+                npz_exist = True
+            except:
+                npz_exist = False
+
+            if npz_exist and (
+                os.path.exists(dz05_path) or not self.check_img_exist
             ) and not force_rendering:
                 npz_files.append(npz_path)
                 scan_names.append(scan)
-                img_files.append(dz05_path)
+                if self.check_img_exist:
+                    img_files.append(dz05_path)
                 continue
 
             arrays = {}
@@ -148,11 +155,24 @@ class Renderer:
                 logger.error('[Dualpol Rendering Failure] scan %s - %s' % (scan, str(ex)))
 
             if "array" in arrays:
-                np.savez_compressed(npz_path, **arrays)
-                self.render_img(arrays["array"], utc_date_station_prefix, scan) # render dz05 and vr05 as png for UI
-                npz_files.append(npz_path)
-                scan_names.append(scan)
-                img_files.append(dz05_path)
+                for _ in range(3): # try to save 3 times until loadable
+                    try:
+                        np.savez_compressed(npz_path, **arrays)
+                        np.load(npz_path)["array"]
+
+                        if self.check_img_exist:
+                            self.render_img(
+                                arrays["array"], utc_date_station_prefix, scan
+                            )  # render dz05 and vr05 as png for UI
+
+                        npz_files.append(npz_path)
+                        scan_names.append(scan)
+                        if self.check_img_exist:
+                            img_files.append(dz05_path)
+
+                        break
+                    except:
+                        continue
 
         return npz_files, scan_names, img_files
 

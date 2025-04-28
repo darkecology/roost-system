@@ -9,6 +9,7 @@ tools/post_hoc_counting/count_us_sunrise_v3/predictions
 tools/deployment_requests
 development/custom_eval/collected_results
 active_measurement/ground_truth/all_stations_v2_screened
+active_measurement/K*
 slurm_logs
 
 # Byte-compiled / optimized / DLL files

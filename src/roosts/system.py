@@ -23,10 +23,10 @@ class RoostSystem:
             aws_access_key_id=args.aws_access_key_id,
             aws_secret_access_key=args.aws_secret_access_key,
         )
-        if hasattr(args, 'not_check_img_exist'):
+        if hasattr(args, 'check_img_exist'):
             self.renderer = Renderer(
                 dirs["scan_dir"], dirs["npz_dir"], dirs["ui_img_dir"],
-                not_check_img_exist=args.not_check_img_exist
+                check_img_exist=args.check_img_exist
             )
         else:
             self.renderer = Renderer(dirs["scan_dir"], dirs["npz_dir"], dirs["ui_img_dir"])
