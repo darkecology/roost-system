@@ -3,9 +3,12 @@ import os
 from roosts.utils.count_summary_util import *
 
 
-MODEL_DIRS = ["ground_truth", "init"]
-for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KTYX"]:
-    MODEL_DIRS.append(f"{station}_10")
+MODEL_DIRS = [] # ["ground_truth", "init"]
+for station in ["KAPX", "KBUF", "KCLE", "KDLH", "KDTX", "KGRB", "KGRR", "KIWX", "KLOT", "KMKX", "KMQT", "KTYX"]:
+    for ckpt_idx in ["10", "20", "30", "40"]:
+        if not (station == "KGRB" and ckpt_idx == "10"):
+            continue
+        MODEL_DIRS.append(f"{station}_{ckpt_idx}")
 MODEL_DIRS = [f"/mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/{d}" for d in MODEL_DIRS]
 
 SWEEP_COUNT_KEY = "n_xcorrBelow0.95_refBelow40_animals"

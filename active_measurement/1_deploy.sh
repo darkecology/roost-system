@@ -40,22 +40,22 @@ PATTERN="*${STATION}_${YEAR}*"
 mkdir -p /mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/${MODEL_NAME}/sweep_counts
 cp -r ${OUTPUT_ROOT}/${MODEL_NAME}/ui/scans_and_tracks/* /mnt/nfs/home/wenlongzhao/work1/counting-labels/roost_counts/${MODEL_NAME}/sweep_counts/
 
-echo "##### Transferring detections: $PATTERN #####"
-ssh ${DST_HOST} mkdir -p ${DST_PRED}/${MODEL_NAME}
-rsync --remove-source-files -avz \
---include="$PATTERN" \
---exclude='*' \
-${OUTPUT_ROOT}/${MODEL_NAME}/ui/scans_and_tracks/ \
-${DST_HOST}:${DST_PRED}/${MODEL_NAME}/
-
-# (4) logs
-PATTERN="${STATION}/${YEAR}/*"
-echo "##### Transferring logs: $PATTERN #####"
-ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${MODEL_NAME}/logs
-rsync --remove-source-files -av \
---include="${STATION}/" \
---include="${STATION}/${YEAR}/" \
---include="$PATTERN" \
---exclude='*' \
-${OUTPUT_ROOT}/${MODEL_NAME}/logs/ \
-${DST_HOST}:${DST_OTHERS}/${MODEL_NAME}/logs/
+#echo "##### Transferring detections: $PATTERN #####"
+#ssh ${DST_HOST} mkdir -p ${DST_PRED}/${MODEL_NAME}
+#rsync --remove-source-files -avz \
+#--include="$PATTERN" \
+#--exclude='*' \
+#${OUTPUT_ROOT}/${MODEL_NAME}/ui/scans_and_tracks/ \
+#${DST_HOST}:${DST_PRED}/${MODEL_NAME}/
+#
+## (4) logs
+#PATTERN="${STATION}/${YEAR}/*"
+#echo "##### Transferring logs: $PATTERN #####"
+#ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/${MODEL_NAME}/logs
+#rsync --remove-source-files -av \
+#--include="${STATION}/" \
+#--include="${STATION}/${YEAR}/" \
+#--include="$PATTERN" \
+#--exclude='*' \
+#${OUTPUT_ROOT}/${MODEL_NAME}/logs/ \
+#${DST_HOST}:${DST_OTHERS}/${MODEL_NAME}/logs/
