@@ -59,8 +59,8 @@ for model_dir in MODEL_DIRS:
         #  - At least 1 detection with score at least 0.5
         #  - Average score at least 0.15
         box_df = box_df[box_df["track_id"].groupby(box_df["track_id"]).transform("count") >= 2]
-        box_df = box_df[box_df.groupby("track_id")["value"].transform("max") >= 0.5]
-        box_df = box_df[box_df.groupby("track_id")["value"].transform("mean") >= 0.15]
+        box_df = box_df[box_df.groupby("track_id")["det_score"].transform("max") >= 0.5]
+        box_df = box_df[box_df.groupby("track_id")["det_score"].transform("mean") >= 0.15]
         df = df[df["track_id"].isin(box_df["track_id"])]
 
         # Aggregate over sweeps for each detection
