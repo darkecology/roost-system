@@ -15,6 +15,7 @@ install_requires = [
     'detectron2 @ git+https://github.com/facebookresearch/detectron2.git#egg=detectron2', # 0.6
     'imageio==2.9.0',           # saving gif, 2.9.0
     'scikit-learn==0.24.2',     # nearest neighbor search using ball tree for wind farm, 0.24.2
+    'pandas==2.0.3',            # 1.1.5 does not work for our script to compute per-day counts, 2.0.3 works
 ]
 
 setup(
