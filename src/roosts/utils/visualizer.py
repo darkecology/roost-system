@@ -291,6 +291,7 @@ class Visualizer:
             det_dict[det["det_ID"]] = det
 
         with open(tracks_path, 'a+') as f:
+            ### Loop over tracks ###
             for track in tqdm(tracks, desc="Write tracks into csv"):
                 if (("is_windfarm" in track.keys() and track["is_windfarm"]) or
                     ("is_rain" in track.keys() and track["is_rain"])):
@@ -302,6 +303,7 @@ class Visualizer:
                         last_pred_idx = idx
                         break
 
+                ### Loop over detections in the track ###
                 for idx, det_ID in enumerate(track["det_IDs"]):
                     # do not report the tail of tracks
                     if idx > last_pred_idx:
@@ -319,6 +321,7 @@ class Visualizer:
 
                     local_time = scan_key_to_local_time(det["scanname"])
 
+                    # add a detection bounding box to the tracks file
                     f.write(
                         ",".join([
                             # UI will convert this track index i into SSSSYYYYMMDD-i
@@ -346,12 +349,12 @@ class Visualizer:
                         sweep_indexes, sweep_angles = get_unique_sweeps(radar)
                         sweep_indexes_and_angles = sorted(zip(sweep_indexes, sweep_angles), key=lambda x: x[1])
 
-                        # count scan-wise bad pixels according to the lowest sweep
-                        # do not need to re-count at each bounding box, but so be it since counting is not slow
                         sweep_index, sweep_angle = sweep_indexes_and_angles[0]
                         _, height = slant2ground(det["geo_dist"], sweep_angle)
                         assert height <= count_cfg["max_height"]
 
+                        # Count scan-wise bad pixels according to the lowest sweep
+                        # When we process each of the multiple bounding boxes per scan, we re-count scan-wise bad pixels. This is inefficient, but we allow it for now.
                         scan_wise_bad_pixel_counts = [""]
                         for xcorr_threshold in count_cfg["xcorr_threshold"]:
                             for linZ_threshold in count_cfg["linZ_threshold"].values():
