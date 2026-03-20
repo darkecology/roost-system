@@ -1,5 +1,7 @@
 import boto3
 import botocore
+from botocore import UNSIGNED
+from botocore.config import Config
 from datetime import datetime, timedelta
 import re
 import os
@@ -92,14 +94,18 @@ def get_station_day_scan_keys(
 ):
 
     if aws_access_key_id is None and aws_secret_access_key is None:
-        bucket = boto3.resource('s3', region_name='us-east-2').Bucket('noaa-nexrad-level2')
+        bucket = boto3.resource(
+            's3',
+            config=Config(signature_version=UNSIGNED),
+            region_name='us-east-1',
+        ).Bucket('unidata-nexrad-level2')
     else:
         bucket = boto3.resource(
             's3',
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
-            region_name='us-east-2'
-        ).Bucket('noaa-nexrad-level2')
+            region_name='us-east-1'
+        ).Bucket('unidata-nexrad-level2')
     start_key = s3_key(start_time, station)
     end_key = s3_key(end_time, station)
 
@@ -143,14 +149,18 @@ def download_scan(
         aws_secret_access_key=None,
 ):
     if aws_access_key_id is None and aws_secret_access_key is None:
-        bucket = boto3.resource('s3', region_name='us-east-2').Bucket('noaa-nexrad-level2')
+        bucket = boto3.resource(
+            's3',
+            config=Config(signature_version=UNSIGNED),
+            region_name='us-east-1',
+        ).Bucket('unidata-nexrad-level2')
     else:
         bucket = boto3.resource(
             's3',
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
-            region_name='us-east-2'
-        ).Bucket('noaa-nexrad-level2')
+            region_name='us-east-1'
+        ).Bucket('unidata-nexrad-level2')
 
     local_file = os.path.join(data_dir, key)
     local_dir, filename = os.path.split(local_file)
