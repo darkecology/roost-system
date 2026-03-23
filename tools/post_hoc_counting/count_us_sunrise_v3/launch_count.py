@@ -1,19 +1,30 @@
+"""
+There are 1573 tracks files (from 2013 to 2023 from 143 stations) to recount.
+On swarm, we can launch 128 longq jobs in parallel.
+1573 / 120 = 13.1
+"""
+
 import os, time
+
+
+INDEX_START, INDEX_END = 0, 1  # TODO: file indexes to count birds
+
 
 NUM_CPUS = 7
 os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OMP_NUM_THREADS={NUM_CPUS}")
 
-DATA_DIR = f"predictions"
-# TODO: which files in the directory to count
-index_start, index_end = 0, 128
+DATA_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_no_counts"
+files = sorted([file for file in os.listdir(DATA_DIR) if file.startswith("track")])
+assert len(files) == 1573, "There should be 1573 tracks files"
 
-SLURM_LOGS = f"slurm_counting_logs"
+OUTPUT_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_counts"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+SLURM_LOGS = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_slurm_counting_logs"
 os.makedirs(SLURM_LOGS, exist_ok=True)
 
-files = sorted([file for file in os.listdir(DATA_DIR) if file.startswith("track")])
-for file in files[index_start:index_end]:
+for file in files[INDEX_START:INDEX_END]:
 
     station, year = file.split("_")[1], file.split("_")[2][:4]
     slurm_output = os.path.join(SLURM_LOGS, f"{file}.out")
@@ -26,9 +37,9 @@ for file in files[index_start:index_end]:
     --cpus-per-task={NUM_CPUS} \
     --mem-per-cpu=2000 \
     --partition=longq \
-    --time=2-00:00:00 \
+    --time=3-00:00:00 \
     count.sh \
-    --data_dir {DATA_DIR} --file {file}'''
+    --data_dir {DATA_DIR} --file {file} --output_dir {OUTPUT_DIR}'''
 
     os.system(cmd)
     time.sleep(1)

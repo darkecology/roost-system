@@ -6,15 +6,15 @@ import os, csv, argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input_dir', type=str, required=True)
+parser.add_argument('--data_dir', type=str, required=True)
 parser.add_argument('--file', type=str, required=True)
+parser.add_argument('--output_dir', type=str, required=True)
 args = parser.parse_args()
 
-with open(os.path.join(args.input_dir, args.file), "r") as f:
+with open(os.path.join(args.data_dir, args.file), "r") as f:
     lines = [line.rstrip().split(",") for line in f.readlines()]
 # 0-4   track_id,filename,from_sunrise,det_score,x,
 # 5-9   y,r,lon,lat,radius,...
-
 
 PP_CFG = {
     "geosize":          300000,
@@ -22,39 +22,48 @@ PP_CFG = {
 
 # counting config
 CNT_CFG = {
-    "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
-    "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
-    "rcs":              get_bird_rcs(54),
-    "xcorr_threshold":  [       # dual-pol cross correlation threshold
+    "count_scaling":   1.2,  # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
+    "max_height":      5000,  # 5000m: this is and should be much higher than roosts' normal height (~2000m)
+    "rcs":             1,  # set to 1, multiply counts by rcs in the sweep-level stage of post-processing.
+    # once considered setting get_bird_rcs(54)
+    "xcorr_threshold": [  # dual-pol cross correlation threshold
+        np.nan,  # no dual-pol cross correlation filtering
         0.95
     ],
-    "linZ_threshold":   {
-        40: 216309,             # 40dBZ -> 216309 in the linear scale
-    }                           # linear scale threshold above which we consider reflectivity to be too high,
+    "linZ_threshold":  {
+        40: 216309,  # 40dBZ -> 216309 in the linear scale
+    }  # linear scale threshold above which we consider reflectivity to be too high,
+    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
 }
 
-output_dir = "sweep_counts"
-os.makedirs(output_dir, exist_ok=True)
-station_day_range = "_".join(args.file.split("_")[-3:])
-f_sweep = open(os.path.join(output_dir, f"sweeps_{station_day_range}"), "w")
+##########
+# TODO: We will overwrite the tracks files and generate sweeps files
+##########
 
+station_day_range = "_".join(args.file.split("_")[-3:])
+f_sweep = open(os.path.join(args.output_dir, f"sweeps_{station_day_range}"), "w")
 f_sweep.write(
     'track_id,filename,sweep_idx,sweep_angle,count_scaling,n_roost_pixels'
 )
-for xcorr_threshold in CNT_CFG["xcorr_threshold"]:
-    for linZ_threshold in CNT_CFG["linZ_threshold"].keys():
-        assert xcorr_threshold is not np.nan
-        f_sweep.write(
-            f',n_xcorrAbove{xcorr_threshold}_pixels'
-            f',n_xcorrBelow{xcorr_threshold}_refAbove{linZ_threshold}_pixels'
-            f',n_xcorrBelow{xcorr_threshold}_refBelow{linZ_threshold}_animals'
-        )
+for xcorr_threshold in self.count_cfg["xcorr_threshold"]:
+    for linZ_threshold in self.count_cfg["linZ_threshold"].keys():
+        if xcorr_threshold is np.nan:
+            f_sweep.write(
+                f',n_refAbove{linZ_threshold}_pixels'
+                f',n_refBelow{linZ_threshold}_animals'
+            )
+        else:
+            f_sweep.write(
+                f',n_xcorrAbove{xcorr_threshold}_pixels'
+                f',n_xcorrBelow{xcorr_threshold}_refAbove{linZ_threshold}_pixels'
+                f',n_xcorrBelow{xcorr_threshold}_refBelow{linZ_threshold}_animals'
+            )
 f_sweep.write('\n')
 
 # COUNTING! Refer to the count_and_save function in visualizer.py
 for i in range(1, len(lines)):
     if i % 100 == 0:
-        print(i)
+        print(f"Counting line {i}...")
     line = lines[i]
 
     xyr = xyr2geo(
@@ -65,6 +74,7 @@ for i in range(1, len(lines)):
     geo_dist = (xyr[0] ** 2 + xyr[1] ** 2) ** 0.5
 
     filename = line[1]
+    # TODO local_station_day =
     try:
         # https://github.com/darkecology/pywsrlib/blob/master/wsrlib/wsrlib.py#L161
         radar = read_http(filename)
@@ -90,7 +100,7 @@ for i in range(1, len(lines)):
                 # This sweep file is not processed by the UI
                 # Directly use SSSSYYYYMMDD-i to match with the UI processed tracks file
                 # YYYYMMDD: local date
-                line[0],
+                line[0],  # TODO see visualizer.py, this should be prepended with local date
 
                 filename,
                 f"{sweep_index}",
