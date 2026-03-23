@@ -5,7 +5,7 @@ install_requires = [
     "opencv-python==4.5.2.52",  # 4.5.2.52
     "gdown==4.4.0",             # 4.4.0
     ### data ###
-    "awscli",
+    "awscli",                   # 1.38.38
     "pytz==2021.1",             # time zone, 2021.1
     "ephem==3.7.7.1",           # 3.7.7.1
     "geopy==2.1.0",             # 2.1.0

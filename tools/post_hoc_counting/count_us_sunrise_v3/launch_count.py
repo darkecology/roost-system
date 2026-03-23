@@ -8,6 +8,7 @@ import os, time
 
 
 INDEX_START, INDEX_END = 0, 1  # TODO: file indexes to count birds
+# TODO: remove try
 
 
 NUM_CPUS = 7
@@ -15,13 +16,13 @@ os.system(f"export MKL_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OPENBLAS_NUM_THREADS={NUM_CPUS}")
 os.system(f"export OMP_NUM_THREADS={NUM_CPUS}")
 
-DATA_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_no_counts"
+DATA_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions_try/us_sunrise_v3_2013-2023_no_counts"
 files = sorted([file for file in os.listdir(DATA_DIR) if file.startswith("track")])
-assert len(files) == 1573, "There should be 1573 tracks files"
+print(f"There are {len(files)} tracks files to count")
 
-OUTPUT_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_counts"
+OUTPUT_DIR = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions_try/us_sunrise_v3_2013-2023_counts"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-SLURM_LOGS = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions/us_sunrise_v3_2013-2023_slurm_counting_logs"
+SLURM_LOGS = "/mnt/nfs/work1/sheldon/wenlongzhao/csv_predictions_try/us_sunrise_v3_2013-2023_slurm_counting_logs"
 os.makedirs(SLURM_LOGS, exist_ok=True)
 
 for file in files[INDEX_START:INDEX_END]:
