@@ -131,9 +131,9 @@ elif args.species == "bat" and args.model_version == "v3":  # Texas bats deploym
 else:
     raise ValueError("args.species has to be either swallow or bat")
 
-if CNT_CFG["xcorr_threshold"] == 0:
+if not isinstance(CNT_CFG["xcorr_threshold"], list) or len(CNT_CFG["xcorr_threshold"]) == 0:
     CNT_CFG["xcorr_threshold"] = [np.nan]  # just so the counting-by-filter loop runs
-assert len(CNT_CFG["linZ_threshold"]) > 0, "At least one linear dBZ threshold is required"
+assert isinstance(CNT_CFG["linZ_threshold"], dict) and len(CNT_CFG["linZ_threshold"]) > 0, "At least one linear dBZ threshold is required"
 
 # directories
 DIRS = {
