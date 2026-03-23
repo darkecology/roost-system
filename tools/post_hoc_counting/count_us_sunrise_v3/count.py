@@ -36,7 +36,7 @@ PP_CFG = {
 CNT_CFG = {
     "count_scaling":   1.2,
     "max_height":      5000,
-    "rcs":             get_bird_rcs(54),  # TODO: 1
+    "rcs":             1,
     "xcorr_threshold": [
         np.nan,
         0.95
