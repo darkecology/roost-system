@@ -51,7 +51,7 @@ To run detection with GPU, check the cuda version at, for example, `/usr/local/c
     # for development and inference with gpus, use the gpu version of torch; we assume cuda 11.3 here
     conda install pytorch==1.10.0 torchvision==0.11.0 cudatoolkit=11.3 -c pytorch -c conda-forge
     # for inference with cpus, use the cpu version of torch
-    # conda install pytorch==1.10.0 torchvision==0.11.0 cpuonly -c pytorch
+    conda install pytorch==1.10.0 torchvision==0.11.0 cpuonly -c pytorch
     
     git clone https://github.com/darkecology/roost-system.git
     cd roost-system

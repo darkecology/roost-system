@@ -7,8 +7,7 @@ On swarm, we can launch 128 longq jobs in parallel.
 import os, time
 
 
-INDEX_START, INDEX_END = 0, 1  # TODO: file indexes to count birds
-# TODO: remove try
+INDEX_START, INDEX_END = 0, 200  # TODO: file indexes to count birds
 
 
 NUM_CPUS = 7
