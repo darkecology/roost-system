@@ -88,6 +88,20 @@ if "us_sunrise_v3" in args.dataset:  # Entire US birds
         }                           # linear scale threshold above which we consider reflectivity to be too high,
                                     # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
     }
+elif "debug_v3" in args.dataset:
+    CNT_CFG = {
+        "dataset":          args.dataset,
+        "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
+        "max_height":       5000,   # 5000m: this is and should be much higher than roosts' normal height (~2000m)
+        "rcs":              get_bird_rcs(54),
+        "xcorr_threshold":  [       # dual-pol cross correlation threshold
+            0.95
+        ],
+        "linZ_threshold":   {
+            40: 216309,             # 40dBZ -> 216309 in the linear scale
+        }                           # linear scale threshold above which we consider reflectivity to be too high,
+                                    # 30dbZ -> 21630, 35dbZ -> 68402, 40dbZ -> 216309, 60dbZ -> 21630891
+    }
 elif args.species == "swallow" and args.model_version == "v2":  # Great Lakes birds
     CNT_CFG = {
         "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
@@ -106,15 +120,20 @@ elif args.species == "bat" and args.model_version == "v3":  # Texas bats deploym
         "max_height":       5000,
         "rcs":              4.519,
         "xcorr_threshold":  [       # dual-pol cross correlation threshold
-            0.95
+            # 0.95,
+            np.nan,                 # no dual-pol cross correlation filtering
         ],
         "linZ_threshold": {
-            60: 21630891,           # 60dBZ
+            # 60: 21630891,           # 60dBZ
             40: 216309,             # 40dBZ
         }
     }
 else:
     raise ValueError("args.species has to be either swallow or bat")
+
+if CNT_CFG["xcorr_threshold"] == 0:
+    CNT_CFG["xcorr_threshold"] = [np.nan]  # just so the counting-by-filter loop runs
+assert len(CNT_CFG["linZ_threshold"]) > 0, "At least one linear dBZ threshold is required"
 
 # directories
 DIRS = {
