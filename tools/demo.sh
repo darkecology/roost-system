@@ -88,11 +88,11 @@ ${OUTPUT_ROOT}/${DATASET}/scans/ \
 ${DST_HOST}:${DST_OTHERS}/${DATASET}/scans/
 
 # (6) slurm_logs -> we will send manually later because these files still change
-#echo "##### Transferring slurm_logs #####"
-#ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs/${DATASET}
-#rsync --remove-source-files -av \
-#${SRC_SLURM}/${DATASET}/ \
-#${DST_HOST}:${DST_OTHERS}/slurm_logs/${DATASET}/
+echo "##### Transferring slurm_logs #####"
+ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs/${DATASET}
+rsync --remove-source-files -av \
+${SRC_SLURM}/${DATASET}/ \
+${DST_HOST}:${DST_OTHERS}/slurm_logs/${DATASET}/
 
 # DEBUGGING
 # Slurm:
