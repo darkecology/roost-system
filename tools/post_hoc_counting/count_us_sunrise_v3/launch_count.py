@@ -1,13 +1,12 @@
 """
 There are 1573 tracks files (from 2013 to 2023 from 143 stations) to recount.
-On swarm, we can launch 128 longq jobs in parallel.
-1573 / 120 = 13.1
+On swarm, we can launch 128 longq jobs in parallel and queue another many longq jobs (at least 370+).
 """
 
 import os, time
 
 
-INDEX_START, INDEX_END = 0, 200  # TODO: file indexes to count birds
+INDEX_START, INDEX_END = 1530, 1560  # TODO: file indexes to count birds
 
 
 NUM_CPUS = 7
