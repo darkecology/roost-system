@@ -18,11 +18,18 @@ DST_IMG=${13}
 DST_PRED=${14}
 DST_ARRAY=${15}
 DST_OTHERS=${16}
+TRANSFER_ONLY=${17:-0}  # 1 = send already-computed outputs without rerunning the pipeline
+
+if [ "${TRANSFER_ONLY}" != "1" ]; then
+# Slurm non-interactive shells do not load ~/.bashrc; use the env with torch/pyart/etc.
+source /mnt/nfs/work1/sheldon/wenlongzhao/anaconda3/etc/profile.d/conda.sh
+conda activate roostsys
 
 python demo.py \
 --species ${SPECIES} --station ${STATION} --start ${START} --end ${END} \
 --sun_activity ${SUN_ACTIVITY} --min_before ${MIN_BEFORE} --min_after ${MIN_AFTER} \
 --data_root ${OUTPUT_ROOT}/${DATASET} --model_version ${MODEL_VERSION} --dataset ${DATASET}
+fi
 
 ##### Transfer outputs. Only transfer the currently processed station-year. #####
 # Transfer outputs for the UI in the verbose mode and with compression
@@ -88,11 +95,11 @@ ${OUTPUT_ROOT}/${DATASET}/scans/ \
 ${DST_HOST}:${DST_OTHERS}/${DATASET}/scans/
 
 # (6) slurm_logs -> we will send manually later because these files still change
-echo "##### Transferring slurm_logs #####"
-ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs/${DATASET}
-rsync --remove-source-files -av \
-${SRC_SLURM}/${DATASET}/ \
-${DST_HOST}:${DST_OTHERS}/slurm_logs/${DATASET}/
+# echo "##### Transferring slurm_logs #####"
+# ssh ${DST_HOST} mkdir -p ${DST_OTHERS}/slurm_logs/${DATASET}
+# rsync --remove-source-files -av \
+# ${SRC_SLURM}/${DATASET}/ \
+# ${DST_HOST}:${DST_OTHERS}/slurm_logs/${DATASET}/
 
 # DEBUGGING
 # Slurm:

@@ -72,7 +72,7 @@ PP_CFG = {
 }
 
 # counting config
-if "us_sunrise_v3" in args.dataset:  # Entire US birds
+if "us_sunrise_v3" in args.dataset or args.dataset == "drought_2007-2012":
     CNT_CFG = {
         "dataset":          args.dataset,
         "count_scaling":    1.2,    # the detector model predicts boxes that trace roosts, enlarge to get bounding boxes
